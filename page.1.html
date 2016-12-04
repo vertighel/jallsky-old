@@ -1,0 +1,38 @@
+<!doctype html>
+<meta charset="utf-8">
+<title>iac poll test</title>
+<style>@import url("./page.css");
+
+  aside.sent{background-color:aliceblue; padding:20px; }
+  aside.received{background-color:beige; padding:20px; height:200px;overflow-y:scroll;}
+  
+</style>
+<script src="../../js/jquery-latest.min.js"></script>
+<body>
+
+
+  <h1>AllSky Camera control panel</h1>
+
+<form>
+  <label>
+    Set the exposure time
+    <input id="exptime" name="exptime" type="text" placeholder="tell me something">
+    <!-- <input id="exptime" name="exptime" type="number" value="0.1" min="0.1" max="30" step="0.1"> -->
+  </label>
+  <button> Expose ! </button>
+</form>
+  
+  <aside class="sent">
+    <strong>Sent to the camera: </strong> <span></span>
+  </aside>
+  
+  <aside class="received">
+    <h2>Output from the camera</h2>
+    <output>
+    </output>
+  </aside>
+
+  
+  <footer>Davide Ricci ★  2016-11-18 ⬢ IAC</footer>
+  
+  <script src="./client.js"></script>

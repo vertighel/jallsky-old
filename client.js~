@@ -1,0 +1,38 @@
+
+/// submitting the color and the age
+$("form").on("submit",function(event){
+    event.preventDefault();                  /// avoids the page to reload
+
+    var normaldata=$(this).serializeArray(); /// takes all the form parameters    
+    var compactdata = { };                   /// compacts them in a "key,value" pair:
+    $.each(normaldata, function() {          /// on each element...
+	compactdata[this.name] = this.value; ///the name is the value 
+    });
+    
+    /// inserting the text on the textareas 
+    // $("aside.sent div").text(JSON.stringify(normaldata, undefined, 2));   /// indentation level = 2
+    $("aside.sent span").text(JSON.stringify(compactdata, undefined, 2)); /// indentation level = 2
+    ws.send(JSON.stringify(compactdata)); /// send the string to the server
+ 
+});
+
+/* opening a websocket connection to interact with other users */
+//var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+var ws = new WebSocket('ws://87.9.122.147:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+//var ws = new WebSocket('ws://80.117.169.24', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+
+var tot=[] /// creating a new array to contain my data and other user's data
+ws.addEventListener("message", function(e) { /// creates an event listener for server messages
+    var obj=$.parseJSON(e.data)
+    //    console.log(obj)
+    $("output")
+	.prepend("<br>")   /// appends a new line
+//	.prepend('<div style="background-color:'+obj.col+'">')
+	.prepend(e.data)   /// appends the message
+    
+    tot.push(obj);      /// pushes new data into the array
+    
+
+});
+
+

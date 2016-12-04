@@ -1,0 +1,29 @@
+#!/usr/bin/node
+
+function create_png(matrix){
+
+		// matrix.read_image_hdu(function(error, image){
+		//     if(error){
+		// 	console.log("Bad things happened while reading image hdu : " + error);
+		// 	return;
+		//     }
+		    
+		//     if(image){
+			
+		// 	var colormap=[ [0,0,0,1,0],
+		// 		       [1,0,1,1,.8],
+		// 		       [1,.2,.2,1,.9],
+		// 		       [1,1,1,1,1]
+		// 		     ];
+		// 	var cuts=[0,5000];
+			
+		// 	image.set_colormap(colormap);
+		// 	image.set_cuts(cuts);
+			
+		// 	var out
+		// 	out = fs.createWriteStream("test.png");
+		// 	out.write(image.tile( { tile_coord : [2,3], zoom :  10, tile_size : [640,480], type : "png" }));
+		// 	out.end();
+			
+		//     }
+		// });

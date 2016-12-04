@@ -1,0 +1,7 @@
+#!/bin/bash
+
+
+./jallsky.7.js /dev/ttyUSB0 10    
+wait
+./jallsky.7.js /dev/ttyUSB0 10    
+
