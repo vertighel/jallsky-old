@@ -18,8 +18,8 @@ $("form").on("submit",function(event){
 
 /* opening a websocket connection to interact with other users */
 //var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-var ws = new WebSocket('ws://82.60.99.205:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-//var ws = new WebSocket('ws://80.117.169.24', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+var ws = new WebSocket('ws://80.117.170.141:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+
 
 var tot=[] /// creating a new array to contain my data and other user's data
 ws.addEventListener("message", function(e) { /// creates an event listener for server messages
@@ -28,11 +28,23 @@ ws.addEventListener("message", function(e) { /// creates an event listener for s
     $("output")
 	.prepend("<br>")   /// appends a new line
 //	.prepend('<div style="background-color:'+obj.col+'">')
-	.prepend(e.data)   /// appends the message
-    
+	.prepend(e.data)   /// appends the message    
     tot.push(obj);      /// pushes new data into the array
     
+    $("figure h2").text(obj.dateobs)
+    $("img").attr("src",obj.pngname)
+    $("img").attr("alt",obj.dateobs)
+    $("figcaption span").text(obj.jd)
+    $("a.fits").attr("href",obj.fitsname)
+    $("a.png").attr("href",obj.pngname)
 
+    $("pre code").text(JSON.stringify(obj, undefined, 2))
+
+    
+    //	.prepend("<br>")   /// appends a new line
+
+
+    
 });
 
 

@@ -10,6 +10,12 @@ var julian = require("julian");
 var mysql = require("mysql");
 var fits = require('../node-fits/build/Release/fits');
 
+var WebSocket = require('ws')
+//var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+var ws = new WebSocket('ws://80.117.170.141:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+
+
+
 /// yargs for arguments
 
 // sudo npm cache clean -f
@@ -65,14 +71,10 @@ const TERMINATOR       = String.fromCharCode(0x1A);
 /// Other Constants
 const PIXEL_SIZE = 2;
 
-// var async = require('asyncawait/async');
-// var await = require('asyncawait/await');
-// (async (function testingAsyncAwait() {
-//     await (console.log("For Trump's Sake Print me!"));
-// }))();
+var fits_dir="./mnt/fits/"
+var png_dir="./mnt/png/"
 
-
-/// CREATE TABLE allskycam (id int auto_increment primary key, filename varchar(31), dateobs varchar(23), jd double)
+/// CREATE TABLE allskycam (id int auto_increment primary key, fitsname varchar(256), pngname varchar(256), jd double)
 var connection = mysql.createConnection({
     host     : 'localhost',
     user     : 'root',
@@ -80,14 +82,15 @@ var connection = mysql.createConnection({
     database : 'test'
 });
 
-
-
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-    portName = process.argv[2] /// device/port   
-    TEMPO =  process.argv[3]    /// seconds
+//portName = process.argv[2] /// device/port   
+//TEMPO =  process.argv[3]    /// seconds
+
+portName = '/dev/ttyUSB0' /// device/port   
+TEMPO =  0.01    /// seconds
 
 var sp = new serialport(portName,
 			{
@@ -100,19 +103,22 @@ var sp = new serialport(portName,
 			    
 			},
 			function(err){			    
-			    if (err) {
-				return console.log('Error: ', err.message);
-			    }
-			}
-		       );
+			    if(err!== null)
+				return console.log('serialport instance error: ', err.message);
+			});
 
 //sp.on('open',  showPortOpen);
-sp.on('close', showPortClose);
+// sp.on('close', showPortClose);
 sp.on('disconnect', showPortDisconnect);
 sp.on('error', showError);
 sp.on('data',  sendSerialData);
 
-function showPortOpen(error) {
+
+
+function showPortOpen(err) {
+    if(err!== null)
+     	return console.log('showPortOpen error: ', err);
+    console.log("showPortOpen: routine called")
     return new Promise(
         function (resolve, reject) {
 //	    if(error!==null){
@@ -124,74 +130,92 @@ function showPortOpen(error) {
 
 }
 
-var a_get_serial_number = promisify(get_serial_number);
-var a_get_firmware_version = promisify(get_firmware_version);
-var a_send_test= promisify(send_test)
+// var a_send_test= promisify(send_test)
+// var a_get_serial_number = promisify(get_serial_number);
+// var a_get_firmware_version = promisify(get_firmware_version);
 var a_open_shutter= promisify(open_shutter)
 var a_get_image= promisify(get_image)
 var a_close_shutter= promisify(close_shutter)
 
 sp.open(function(err){
-
-    showPortOpen()
-	.then(function(){
-	    return a_send_test();
-	})
-	.then(function(){
-	    return a_get_serial_number();
-	})
-	.then(function(){
-	    return a_get_firmware_version();
-	})
+    
+    showPortOpen(err)
+	// .then(function(){
+        //     return a_send_test();
+	// })
+	// .then(function(){
+        //     return a_get_serial_number();
+	// })
+	// .then(function(){
+        //     return a_get_firmware_version();
+	// })
 	.then(function(){
 	    return a_open_shutter();
 	})
-	.then(function(){
-	    
+	.then(function(){	    
 	    return a_get_image(TEMPO , function(){}, function(err, image_data){
+		if(err!== null)
+		    return console.log('a_get_image error: ', err);
+		console.log("a_get_image: routine called. Got image!")
 		
-		console.log("Done get image !");
+		var now      = new Date(); /// Time stamp to be used for file names, DATE-OBS and JD
+		var dateobs  = now.toISOString().slice(0,-1)  /// string
+		var jd       = parseFloat(julian(now))        /// double
+		var fitsname = fits_dir+dateobs+".fits"
+		var pngname  = png_dir +dateobs+".png"
 		
-		var now = new Date();
-		
-		var dateobs= now.toISOString().slice(0,-1)
-		var filename=dateobs+".fits"
-		var jd = julian(now)
-		
-		var fifi=new fits.file; 
-		fifi.file_name="/mnt/fits/"+filename;
-		 var M=new fits.mat_ushort;
-		 M.set_data(640,480, image_data);		
+		var fifi     = new fits.file(fitsname); 
+		var M        = new fits.mat_ushort;
 
+		M.set_data(640,480, image_data);
+		fifi.file_name;		
 		fifi.write_image_hdu(M);
-
+		
 		fifi.set_header_key([
 		    { key : "DATE-OBS",
 		      value : dateobs,
 		      comment : "Observation date from laptop, synchronized with NTP"},
 		    { key : "JD",
-		      value : parseFloat(jd),
+		      value : jd,
 		      comment : "Julian Date from laptop, synchronized with NTP"}
-		],function(error){console.log("Error is [" + error + "]")});
-
-		var post  = {filename:filename, jd :jd, dateobs:dateobs };
-		var query = connection.query('INSERT INTO allskycam SET ?', post, function(err, result) {
-		    if(err!== null) console.log("Error inserting into database: "+err)
-		    		console.log("Inserted: "+query.sql);
+		], function(err){
+    		    if(err!== null)
+			console.log("Error setting fits header:")		    
 		});
 		
-		create_png(filename)
+		create_png(fitsname,pngname)
+		
+		var post  = {fitsname:fitsname, pngname:pngname, jd:jd, dateobs:dateobs };
+				
+		var query = connection.query('INSERT INTO allskycam SET ?', post, function(err, result) {
+    		    if(err!== null){
+			console.log("Error retreiving image: "+err)
+			console.log("Closing the db connection!")
+    			connection.end() /// closing mysql connection	    
+		    }
+		    console.log("Executed the following mysql query: "+query.sql);
+    			connection.end() /// closing mysql connection	    
+		});		
+
+		console.log("############################")
+		console.log(post)
+		
+		ws.send(JSON.stringify(post),function(err,res){
+		    if(err !=null)
+			consol.log("Websocket error sending message: "+err)		
+		    ws.close();
+		})
 		
 		close_shutter(function (err, res){
-		    if(err!==null) return;
-		    console.log("Shutter closed !");
-		    
-		    connection.end() /// closing mysql connection
-		    sp.close(); return; /// closing serialport connection
+		    if(err!==null) return console.log("close_shutter error: "+err);
+		    sp.close(function(err) {
+			if(err!==null) return console.log('sp.close error', err);
+			console.log("sp.close: connection closed !")
+		    }); /// sp.close		  
 		}); /// close shutter
-		
+			      
 	    }); /// get image
-	    
+
 	})
     // .then(function(result){
     //     return a_close_shutter();
@@ -199,8 +223,8 @@ sp.open(function(err){
 	.catch(function(error) {
 	    console.log("there was an error: "+error)
 	});
-    
-   });
+
+});
 
 var data_listener_func=null;
 
@@ -211,17 +235,17 @@ function sendSerialData(data){
 }
 
 function showPortClose() {
-    console.log('Port closed.');
+    console.log('showPortClose: Port closed.');
 }
 
 
 function showPortDisconnect() {
-    console.log('Port disconnected.');
+    console.log('showPortDisconnect: Port disconnected.');
 }
 
 
-function showError(error) {
-    console.log('Serial port error: ' + error);
+function showError(err) {
+    console.log('showError: rerial port error: ' + err);
 }
 
 ////////////////////////////////////////////////////////////
@@ -383,7 +407,7 @@ function  open_shutter(cb){
 	console.log("Shutter open !");
 	setTimeout(function(){
 	    send_command(DE_ENERGIZE, cb, undefined);
-	},1000) //1 seconde = 1000ms....	
+	},100) //1 second = 1000ms....	
     }, undefined);
 }
 
@@ -393,10 +417,10 @@ function  open_shutter(cb){
 function  close_shutter(cb){
     send_command(CLOSE_SHUTTER,function(err,data){
 	if(err!==null) return  console.log("Error closing shutter: " + err);
- 	console.log("Shutter closed !");
+ 	console.log("Shutter closed !!");
 	setTimeout(function(){
 	    send_command(DE_ENERGIZE, cb, undefined)
-	},1000) //1 second = 1000ms....	
+	},100) //1 second = 1000ms....	
     }, undefined);
 }
 
@@ -527,7 +551,7 @@ function get_image(exposure, progress_callback, get_cb){
 		
 		received_bytes+=block_nbytes;
 		
-		console.log("Received image data  (8193 =?" + nb + " Total image bytes="+received_bytes + "/" + total_nbytes + " CSUM=" + cs + " CSUM IN " + csum_in + "      \r");
+		console.log("Received image data: bytes="+received_bytes + "/" + total_nbytes + " CSUM=" + cs + "=" + csum_in);
 		
 		if(received_bytes===total_nbytes){
 		    sp.write(CSUM_OK);
@@ -554,9 +578,9 @@ function get_image(exposure, progress_callback, get_cb){
    
 }
 
-function create_png(file_name){
+function create_png(fitsname,pngname){
     
-var f = new fits.file("/mnt/fits/"+file_name); //The file is automatically opened (for reading) if the file name is specified on constructor.
+var f = new fits.file(fitsname); //The file is automatically opened (for reading) if the file name is specified on constructor.
 
     f.get_headers(function(error, headers){
     
@@ -570,29 +594,28 @@ var f = new fits.file("/mnt/fits/"+file_name); //The file is automatically opene
 		
 		//for (var ip in image) console.log("IP : " + ip);
 		
-	    console.log("Image size : " + image.width() + " X " + image.height()); 
+		console.log("Image size : " + image.width() + " X " + image.height()); 
 		
 		var colormap=[
-		     //R  //G  //B  //A  //level: 0=min,1=max
+		    //R  //G  //B  //A  //level: 0=min,1=max
 		    [0.0, 0.0, 0.0, 1.0, 0.0],
 		    [0.4, 0.4, 0.4, 1.0, 0.8],
 		    [0.8, 0.8, 0.8, 1.0, 0.9],
 		    [1.0, 1.0, 1.0, 1.0, 1.0]
-	    ];
-	    
-	    var cuts=[100,45000];
-	    
-	    image.set_colormap(colormap);
-	    image.set_cuts(cuts);
-	    
-		out = fs.createWriteStream("/mnt/png/"+file_name.slice(0,-5)+".png");
+		];
+		
+		var cuts=[100,45000];
+		
+		image.set_colormap(colormap);
+		image.set_cuts(cuts);
+		out = fs.createWriteStream(pngname);
 		out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [640,480], type : "png" }));
 		out.end();
-	    
+		
 	    }
-	
+	    
 	});
-  
+	
     });
 
 }
@@ -624,3 +647,4 @@ var f = new fits.file("/mnt/fits/"+file_name); //The file is automatically opene
 			
 		//     }
 		// });
+

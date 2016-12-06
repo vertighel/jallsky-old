@@ -3,6 +3,16 @@
 var http = require('http'),                     /// http module
 wsserver = require('websocket').server;         /// websocket module (npm install websocket)
 
+var mysql = require('mysql')                     /// mysql module
+
+var dbconnection = mysql.createConnection({
+    host     : 'localhost',
+    user     : 'root',
+    password : 'password',
+    database : 'test'
+});
+
+
 /// 1) Create http server and listening.
 var server = http.createServer(function(request, response) {});
 var port = 1234                                 /// Listening on this port.
@@ -16,12 +26,29 @@ ws = new wsserver( { httpServer: server } );
 /// 3) Create listener for  connections
 var count = 0;                                  /// Reset clients counter
 var clients = {};                               /// Store connected client
+
 ws.on('request', function(r){                   /// Listen connections
     var connection = r.accept('echo-protocol', r.origin); /// Accept the connection
     var id = count++;                           /// Specific id for this client & increment count
     clients[id] = connection;                   /// Store the connection method so we can loop through & contact all clients
     console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' connected. Connection id: '+id);
-    
+
+    /////////////////////////////////// 
+    var query = dbconnection.query('SELECT * from allskycam ORDER BY id DESC LIMIT 1',  function(err, result) {
+    	if(err!== null){
+	    console.log("Error retreiving image: "+err)
+	    console.log("Closing the connection ")
+    	    dbconnection.end() /// closing mysql connection	    
+	}
+	    
+    	console.log("Executed: "+query.sql);
+    	console.log(result[0]);
+
+	for(var i in clients)
+	    clients[i].send(JSON.stringify(result[0])); /// send the string to the server
+	
+    });
+
     
     /// 3a) Listen for incoming messages and broadcast
     connection.on('message', function(message){ /// Create event listener
@@ -41,6 +68,10 @@ ws.on('request', function(r){                   /// Listen connections
     connection.on('close', function(reasonCode, description){ /// Create event listener
 	delete clients[id];
 	console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
+
+
     });
     
 }); /// ws.on
+
+
