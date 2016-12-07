@@ -25,16 +25,22 @@ var tot=[] /// creating a new array to contain my data and other user's data
 ws.addEventListener("message", function(e) { /// creates an event listener for server messages
     var obj=$.parseJSON(e.data)
     //    console.log(obj)
-    $("output")
-	.prepend("<br>")   /// appends a new line
-//	.prepend('<div style="background-color:'+obj.col+'">')
-	.prepend(e.data)   /// appends the message    
-    tot.push(obj);      /// pushes new data into the array
+//     $("output")
+// 	.prepend("<br>")   /// appends a new line
+// //	.prepend('<div style="background-color:'+obj.col+'">')
+// 	.prepend(e.data)   /// appends the message    
+//     tot.push(obj);      /// pushes new data into the array
+
+    var datearr=obj.dateobs.slice(0,-4).split('T')
     
-    $("figure h2").text(obj.dateobs)
+    $("figure h2").text(datearr[0])
+    $("figure h4").text(datearr[1]+" UTC")
     $("img").attr("src",obj.pngname)
     $("img").attr("alt",obj.dateobs)
-    $("figcaption span").text(obj.jd)
+    $("figcaption span").html("<strong>JD: </strong>"+obj.jd+" &nbsp; - &nbsp; <strong>Exposure time: </strong>"+obj.exptime+"s")
+    
+    $("video source").attr("src",'./mnt/output.mp4')
+
     $("a.fits").attr("href",obj.fitsname)
     $("a.png").attr("href",obj.pngname)
 

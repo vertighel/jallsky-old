@@ -1,4 +1,4 @@
-#!/usr/bin/nodejs
+#!/usr/bin/node
 
 var http = require('http'),                     /// http module
 wsserver = require('websocket').server;         /// websocket module (npm install websocket)
@@ -29,23 +29,25 @@ var clients = {};                               /// Store connected client
 
 ws.on('request', function(r){                   /// Listen connections
     var connection = r.accept('echo-protocol', r.origin); /// Accept the connection
-    var id = count++;                           /// Specific id for this client & increment count
-    clients[id] = connection;                   /// Store the connection method so we can loop through & contact all clients
-    console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' connected. Connection id: '+id);
+    var client_id = count++;                           /// Specific id for this client & increment count
+    clients[client_id] = connection;                   /// Store the connection method so we can loop through & contact all clients
+    console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' connected. It\'s client n°: '+client_id);
 
     /////////////////////////////////// 
     var query = dbconnection.query('SELECT * from allskycam ORDER BY id DESC LIMIT 1',  function(err, result) {
     	if(err!== null){
 	    console.log("Error retreiving image: "+err)
 	    console.log("Closing the connection ")
-    	    dbconnection.end() /// closing mysql connection	    
+    	    dbconnection.end() /// closing mysql connection
 	}
 	    
     	console.log("Executed: "+query.sql);
     	console.log(result[0]);
 
-	for(var i in clients)
-	    clients[i].send(JSON.stringify(result[0])); /// send the string to the server
+	connection.send(JSON.stringify(result[0])); /// send the string to the server
+
+	// for(var i in clients)
+	//     clients[i].send(JSON.stringify(result[0])); /// send the string to the server
 	
     });
 
@@ -55,9 +57,15 @@ ws.on('request', function(r){                   /// Listen connections
 
 	var msgString = message.utf8Data;       /// The string message that was sent to us			
 
+
+	
 	var msgjson = JSON.parse(msgString)
 
-	msgjson.id=id
+	msgjson.id=client_id
+
+
+    	console.log("Message received from client n°: "+client_id+". The message is");
+    	console.log(msgjson);
 	
 	for(var i in clients)
             clients[i].sendUTF(JSON.stringify(msgjson));      /// Send a message to the client with the message
@@ -66,7 +74,7 @@ ws.on('request', function(r){                   /// Listen connections
     
     /// 3b) Listen for client disconnection
     connection.on('close', function(reasonCode, description){ /// Create event listener
-	delete clients[id];
+	delete clients[client_id];
 	console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
 
 

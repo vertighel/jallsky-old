@@ -74,7 +74,8 @@ const PIXEL_SIZE = 2;
 var fits_dir="./mnt/fits/"
 var png_dir="./mnt/png/"
 
-/// CREATE TABLE allskycam (id int auto_increment primary key, fitsname varchar(256), pngname varchar(256), jd double)
+/// CREATE TABLE allskycam (id int auto_increment primary key, 
+/// fitsname varchar(256), dateobs varchar(23), pngname varchar(256), jd double, exptime float);
 var connection = mysql.createConnection({
     host     : 'localhost',
     user     : 'root',
@@ -86,11 +87,11 @@ var connection = mysql.createConnection({
 ////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////
 
-//portName = process.argv[2] /// device/port   
-//TEMPO =  process.argv[3]    /// seconds
+portName = process.argv[2] /// device/port   
+TEMPO =  process.argv[3]    /// seconds
 
-portName = '/dev/ttyUSB0' /// device/port   
-TEMPO =  0.01    /// seconds
+//portName = '/dev/ttyUSB0' /// device/port   
+//TEMPO =  0.01    /// seconds
 
 var sp = new serialport(portName,
 			{
@@ -177,15 +178,17 @@ sp.open(function(err){
 		      comment : "Observation date from laptop, synchronized with NTP"},
 		    { key : "JD",
 		      value : jd,
-		      comment : "Julian Date from laptop, synchronized with NTP"}
+		      comment : "Julian Date from laptop, synchronized with NTP"},
+		    { key : "EXPTIME",
+		      value : TEMPO,
+		      comment : "Exposure time in seconds"},
 		], function(err){
     		    if(err!== null)
 			console.log("Error setting fits header:")		    
 		});
 		
-		create_png(fitsname,pngname)
 		
-		var post  = {fitsname:fitsname, pngname:pngname, jd:jd, dateobs:dateobs };
+		var post  = {fitsname:fitsname, pngname:pngname, jd:jd, dateobs:dateobs, exptime:TEMPO };
 				
 		var query = connection.query('INSERT INTO allskycam SET ?', post, function(err, result) {
     		    if(err!== null){
@@ -194,24 +197,33 @@ sp.open(function(err){
     			connection.end() /// closing mysql connection	    
 		    }
 		    console.log("Executed the following mysql query: "+query.sql);
-    			connection.end() /// closing mysql connection	    
-		});		
+    		    connection.end() /// closing mysql connection	    
+		    
+		});	
 
-		console.log("############################")
-		console.log(post)
-		
-		ws.send(JSON.stringify(post),function(err,res){
-		    if(err !=null)
-			consol.log("Websocket error sending message: "+err)		
-		    ws.close();
-		})
-		
+
+		create_png(post, function(){
+		    console.log("callback of create_png: called")
+		    
+		    setTimeout(function(){
+			ws.send(JSON.stringify(post),function(err,res){
+			    if(err !=null) console.log("Websocket error sending message: "+err)
+			    console.log("sending post to server.js")
+			    console.log(post)
+			    
+			})		    
+			ws.close();		    
+		    },1000) //1 second = 1000ms....	
+		   
+		})		
+				
 		close_shutter(function (err, res){
 		    if(err!==null) return console.log("close_shutter error: "+err);
 		    sp.close(function(err) {
 			if(err!==null) return console.log('sp.close error', err);
 			console.log("sp.close: connection closed !")
-		    }); /// sp.close		  
+		    }); /// sp.close
+		    
 		}); /// close shutter
 			      
 	    }); /// get image
@@ -407,7 +419,7 @@ function  open_shutter(cb){
 	console.log("Shutter open !");
 	setTimeout(function(){
 	    send_command(DE_ENERGIZE, cb, undefined);
-	},100) //1 second = 1000ms....	
+	},1000) //1 second = 1000ms....	
     }, undefined);
 }
 
@@ -420,7 +432,7 @@ function  close_shutter(cb){
  	console.log("Shutter closed !!");
 	setTimeout(function(){
 	    send_command(DE_ENERGIZE, cb, undefined)
-	},100) //1 second = 1000ms....	
+	},1000) //1 second = 1000ms....	
     }, undefined);
 }
 
@@ -578,9 +590,10 @@ function get_image(exposure, progress_callback, get_cb){
    
 }
 
-function create_png(fitsname,pngname){
+function create_png(post,cb){
+    console.log("create_png: called")
     
-var f = new fits.file(fitsname); //The file is automatically opened (for reading) if the file name is specified on constructor.
+var f = new fits.file(post.fitsname); //The file is automatically opened (for reading) if the file name is specified on constructor.
 
     f.get_headers(function(error, headers){
     
@@ -599,25 +612,31 @@ var f = new fits.file(fitsname); //The file is automatically opened (for reading
 		var colormap=[
 		    //R  //G  //B  //A  //level: 0=min,1=max
 		    [0.0, 0.0, 0.0, 1.0, 0.0],
-		    [0.4, 0.4, 0.4, 1.0, 0.8],
-		    [0.8, 0.8, 0.8, 1.0, 0.9],
+//		    [0.4, 0.4, 0.4, 1.0, 0.8],
+//		    [0.8, 0.8, 0.8, 1.0, 0.9],
 		    [1.0, 1.0, 1.0, 1.0, 1.0]
 		];
 		
-		var cuts=[100,45000];
+//		var cuts=[100,45000];
+		var cuts=[2000,6000];
 		
 		image.set_colormap(colormap);
 		image.set_cuts(cuts);
-		out = fs.createWriteStream(pngname);
+		out = fs.createWriteStream(post.pngname);
 		out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [640,480], type : "png" }));
 		out.end();
-		
+
+		    console.log("create_png: written")
+
 	    }
 	    
 	});
+
+	cb();
 	
     });
-
+    console.log("create_png: ended")
+    
 }
 
 

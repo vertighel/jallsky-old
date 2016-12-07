@@ -7,7 +7,7 @@
     <meta name="description" content="">
     <meta name="author" content="Davide Ricci">
     <link rel="icon" href="../../favicon.ico">
-    <base target="_blank">
+    <!-- <base target="_blank"> -->
     <title>ORSA AllSky</title>
 
     <!-- Bootstrap core CSS -->
@@ -19,17 +19,7 @@
 
     <nav class="navbar navbar-static-top navbar-dark bg-inverse">
       <a class="navbar-brand" href="#">ORSA AllSky Camera 340</a>
-      <!-- <ul class="nav navbar-nav"> -->
-      <!--   <li class="nav-item active"> -->
-      <!--     <a class="nav-link" href="#">Home <span class="sr-only">(current)</span></a> -->
-      <!--   </li> -->
-      <!--   <li class="nav-item"> -->
-      <!--     <a class="nav-link" href="#">About</a> -->
-      <!--   </li> -->
-      <!--   <li class="nav-item"> -->
-      <!--     <a class="nav-link" href="#">Contact</a> -->
-      <!--   </li> -->
-      <!-- </ul> -->
+
     </nav>
 
     <!-- <\!-- Main jumbotron for a primary marketing message or call to action -\-> -->
@@ -42,6 +32,16 @@
     <!-- </div> -->
 
     <div class="container">
+
+      <!-- <ul class="nav nav-tabs" role="tablist"> -->
+      <!--   <li class="nav-item active"> -->
+      <!--     <a class="nav-link" href="#">Images <span class="sr-only">(current)</span></a> -->
+      <!--   </li> -->
+      <!--   <li class="nav-item"> -->
+      <!--     <a class="nav-link" href="#">Video</a> -->
+      <!--   </li> -->
+      <!-- </ul> -->
+
       <!-- Example row of columns -->
       <div class="row">
         <!-- <article> -->
@@ -57,12 +57,24 @@
         <!-- </article> -->
 
 	<figure class="col-md-6">
-          <h2></h2>
+	    <h2 style="display:inline"></h2> &nbsp; &nbsp;
+	    <h4 style="display:inline; color:gray"></h4>
 	  <img class="img-fluid">
 	  <figcaption>
 	    <span></span>
 	  </figcaption>
 	</figure>
+	
+	<aside class="col-md-6">
+	    <h2 style="display:inline">Video</h2> &nbsp; &nbsp;
+	    <h4 style="display:inline; color:gray">last 25 images</h4>
+	    <video class="img-fluid" controls loop autoplay>	     
+	      <source src="./mnt/output.mp4" type="video/mp4">
+	    </video>
+	</aside>
+	
+      </div>
+
 	
         <div class="col-md-6">
           <h2>Test software</h2>
@@ -82,12 +94,9 @@
 	    </ul>
         </div>
 
-	
-      </div>
-
       
       <div class="container">
-	<pre class="col-md-12">
+	<pre class="col-md-6">
 <code>
 </code>
 	</pre>
