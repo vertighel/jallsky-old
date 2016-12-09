@@ -18,7 +18,8 @@ $("form").on("submit",function(event){
 
 /* opening a websocket connection to interact with other users */
 //var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-var ws = new WebSocket('ws://80.117.170.141:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+var ws = new WebSocket('ws://192.168.1.23:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+// var ws = new WebSocket('ws://80.117.170.141:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 
 
 var tot=[] /// creating a new array to contain my data and other user's data
@@ -34,12 +35,12 @@ ws.addEventListener("message", function(e) { /// creates an event listener for s
     var datearr=obj.dateobs.slice(0,-4).split('T')
     
     $("figure h2").text(datearr[0])
-    $("figure h4").text(datearr[1]+" UTC")
+    $("figure h4").text(datearr[1]+" UT")
     $("img").attr("src",obj.pngname)
     $("img").attr("alt",obj.dateobs)
     $("figcaption span").html("<strong>JD: </strong>"+obj.jd+" &nbsp; - &nbsp; <strong>Exposure time: </strong>"+obj.exptime+"s")
     
-    $("video source").attr("src",'./mnt/output.mp4')
+//    $("video source").attr("src",'./mnt/output.mp4')
 
     $("a.fits").attr("href",obj.fitsname)
     $("a.png").attr("href",obj.pngname)

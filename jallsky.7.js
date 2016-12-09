@@ -12,7 +12,8 @@ var fits = require('../node-fits/build/Release/fits');
 
 var WebSocket = require('ws')
 //var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-var ws = new WebSocket('ws://80.117.170.141:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+//var ws = new WebSocket('ws://192.168.0.6:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+// var ws = new WebSocket('ws://80.117.170.141:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 
 
 
@@ -58,8 +59,8 @@ const CSUM_ERROR = 'R';
 const STOP_XFER  = 'S';
 
 const EXPOSURE_IN_PROGRESS = 'E';
-const READOUT_IN_PROGRESS  = 'R';
 const EXPOSURE_DONE        = 'D';
+const READOUT_IN_PROGRESS  = 'R';
 
 const MAX_EXPOSURE         = 0x63FFFF;
 
@@ -70,6 +71,8 @@ const TERMINATOR       = String.fromCharCode(0x1A);
 
 /// Other Constants
 const PIXEL_SIZE = 2;
+
+const SUB_FRAME = 'S';
 
 var fits_dir="./mnt/fits/"
 var png_dir="./mnt/png/"
@@ -131,12 +134,16 @@ function showPortOpen(err) {
 
 }
 
-// var a_send_test= promisify(send_test)
-// var a_get_serial_number = promisify(get_serial_number);
-// var a_get_firmware_version = promisify(get_firmware_version);
+var a_send_test= promisify(send_test)
+var a_get_serial_number = promisify(get_serial_number);
+var a_get_firmware_version = promisify(get_firmware_version);
+var a_define_subframe= promisify(define_subframe)
 var a_open_shutter= promisify(open_shutter)
 var a_get_image= promisify(get_image)
 var a_close_shutter= promisify(close_shutter)
+var a_heater_on= promisify(heater_on)
+var a_heater_off= promisify(heater_off)
+
 
 sp.open(function(err){
     
@@ -144,12 +151,21 @@ sp.open(function(err){
 	// .then(function(){
         //     return a_send_test();
 	// })
+	.then(function(){
+            return a_get_serial_number();
+	})
+	.then(function(){
+            return a_get_firmware_version();
+	})
 	// .then(function(){
-        //     return a_get_serial_number();
+	//     return a_heater_on();
 	// })
-	// .then(function(){
-        //     return a_get_firmware_version();
-	// })
+	.then(function(){
+	    return a_define_subframe(200,300,120,function(err,data){
+    		if(err!==null) return console.log("define_subframe err: "+err)
+		console.log("a_define_subframe: routine called!")		
+	    })
+	})
 	.then(function(){
 	    return a_open_shutter();
 	})
@@ -157,7 +173,7 @@ sp.open(function(err){
 	    return a_get_image(TEMPO , function(){}, function(err, image_data){
 		if(err!== null)
 		    return console.log('a_get_image error: ', err);
-		console.log("a_get_image: routine called. Got image!")
+		console.log("a_get_image: routine called. Got image!")		
 		
 		var now      = new Date(); /// Time stamp to be used for file names, DATE-OBS and JD
 		var dateobs  = now.toISOString().slice(0,-1)  /// string
@@ -168,7 +184,10 @@ sp.open(function(err){
 		var fifi     = new fits.file(fitsname); 
 		var M        = new fits.mat_ushort;
 
-		M.set_data(640,480, image_data);
+		// M.set_data(640,480, image_data);
+		// M.set_data(512,480, image_data);
+		// M.set_data(320,240, image_data);
+		M.set_data(120,120, image_data);
 		fifi.file_name;		
 		fifi.write_image_hdu(M);
 		
@@ -180,7 +199,7 @@ sp.open(function(err){
 		      value : jd,
 		      comment : "Julian Date from laptop, synchronized with NTP"},
 		    { key : "EXPTIME",
-		      value : TEMPO,
+		      value : TEMPO+0,
 		      comment : "Exposure time in seconds"},
 		], function(err){
     		    if(err!== null)
@@ -222,6 +241,12 @@ sp.open(function(err){
 		    sp.close(function(err) {
 			if(err!==null) return console.log('sp.close error', err);
 			console.log("sp.close: connection closed !")
+
+			// heater_off(function (err, res){
+			//     if(err!==null) return console.log("heater_on error: "+err);			    
+			//     console.log("heater off!!!!!")
+			// }); /// heater off
+			    
 		    }); /// sp.close
 		    
 		}); /// close shutter
@@ -229,9 +254,12 @@ sp.open(function(err){
 	    }); /// get image
 
 	})
-    // .then(function(result){
-    //     return a_close_shutter();
+    // .then(function(){
+    //     return a_heater_off();
     // })
+	// .then(function(result){
+        //     return a_close_shutter();
+	// })
 	.catch(function(error) {
 	    console.log("there was an error: "+error)
 	});
@@ -275,6 +303,7 @@ function checksum_buf(com){
 	cs = cs ^ csb;
     }
     com.writeUInt8(cs,cl-1);
+    console.log("ckecksum ok!!!!")
 }
 
 function checksum(com){
@@ -342,6 +371,7 @@ function send_command (command, callback, nb) {
 
     function on_data(buf){
 	var received_cs=buf.readUInt8(0);
+
 	var received_data=buf.slice(1); /// cut the first element
 	
 	if(received_cs!==cs.charCodeAt(0)){  /// checksum matching
@@ -410,6 +440,24 @@ function get_serial_number(cb){
     }, 11);
 }
 
+/// Switches on the heater
+function heater_on(cb){
+    send_command(HEATER_ON, function(err,data){
+	if(err!==null) return  console.log("Error switching on the heater: " + err);
+	console.log("Heater on!");
+	cb()
+    }, undefined);
+}
+
+/// Switches off the heater
+function heater_off(cb){
+    send_command(HEATER_OFF, function(err,data){
+	if(err!==null) return  console.log("Error switching off the heater: " + err);
+	console.log("Heater off!");
+	cb()
+    }, undefined);
+}
+
 
 /// Open the camera shutter.
 /// n.b. leaves the shutter motor energized
@@ -469,13 +517,68 @@ function  autonomous_guide(cb){
 }
 
 
+
+/// This command defines the location and size of the sub-frame. The
+/// maximum size of the sub- frame is 127 pixels. This command does not
+function define_subframe(xstart,ystart,size,cb){
+
+    var x = new Buffer(4); //Enough place for a long int
+    x.writeInt32LE(xstart);  //Little endian for Upper byte first...
+    
+    var xup  = x.readUInt8(1); //On fait ca en details... trop!, mais c'est pour etre sur!
+    var xlow = x.readUInt8(0);
+
+    var y = new Buffer(4); //Enough place for a long int
+    y.writeInt32LE(ystart);  //Little endian for Upper byte first...
+
+    var yup  = y.readUInt8(1); //On fait ca en details... trop!, mais c'est pour etre sur!
+    var ylow = y.readUInt8(0);
+
+    var s = new Buffer(4); //Enough place for a long int
+    s.writeInt32LE(size);  //Little endian for Upper byte first...
+
+    var sz = s.readUInt8(0);
+    
+    var combuf=new Buffer(7);
+
+    console.log("xlow " + xlow + " ylow " + ylow + " size " + sz  );
+
+    combuf.writeUInt8(SUB_FRAME.charCodeAt(0),0);
+    combuf.writeUInt8(xup,1);
+    combuf.writeUInt8(xlow,2);
+    combuf.writeUInt8(yup,3);
+    combuf.writeUInt8(ylow,4);
+    combuf.writeUInt8(sz,5); /// max 128
+
+    checksum_buf(combuf);
+
+    var com=combuf;
+    var cmd_checksum=combuf.readUInt8(6);
+    
+    console.log("define_subframe checksum is " + cmd_checksum);
+    console.log("Length of com=" + com.length + " should be 7?");
+
+
+    sp.write(combuf, function (err) {
+	if (err) {
+	    console.log("Error while sending ["+command+"] : " + err);
+	    cb(err);
+	}
+    });
+    
+    // send_command(combuf, function(err, res){
+    // 	if(err!==null) return cb(err);
+    // }, 7);
+    
+}
+
+
 /// Fetch an image from the camera
 /// exposure -- exposure time in seconds
 /// progress_callback -- Function to be called after each block downloaded
 /// returns an astropy HDUList object
-
 function get_image(exposure, progress_callback, get_cb){
-
+    
     /// Camera expsosure time works in 100µs units
     var exptime = exposure / 100e-6;
 
@@ -499,8 +602,8 @@ function get_image(exposure, progress_callback, get_cb){
     combuf.writeUInt8(up,1);
     combuf.writeUInt8(mid,2);
     combuf.writeUInt8(low,3);
-    combuf.writeUInt8(0,4);
-    combuf.writeUInt8(1,5);
+    combuf.writeUInt8(0xff,4); /// 2=binned, 1=cropped,0=full, 0xff=subframe
+    combuf.writeUInt8(1,5); /// 2=L-D, 1=L, 0=D
 
     checksum_buf(combuf);
 
@@ -510,11 +613,9 @@ function get_image(exposure, progress_callback, get_cb){
     console.log("Take image checksum is " + cmd_checksum);
     console.log("Length of com=" + com.length + " should be 7?");
 
-    
     var timestamp = new Date();
     timestamp = timestamp.toISOString();
     
-
     console.log('Beginning Exposure')
 
     var first_data_received=true;
@@ -534,11 +635,21 @@ function get_image(exposure, progress_callback, get_cb){
 	    console.log("GetImage received progress data ["+in_data.toString('ascii')+"]");
 	
 	if(in_data == EXPOSURE_DONE){
-	    
-	    
-	    var blocks_expected = (640 * 480) / 4096;
+	    	 
+	    // var blocks_expected = (640 * 480) / 4096;
+	    // var block_nbytes=2*4096;
+	    	 
+	    // var blocks_expected = (512 * 480) / 4096;
+	    // var block_nbytes=2*4096;
+
+	    // var blocks_expected = (320 * 240) / 1024;
+	    // var block_nbytes=2*1024;
+
+	    var line_size=120
+	    var blocks_expected  = line_size;
+	    var block_nbytes= 2*line_size;
+
 	    var blocks_complete = 0;
-	    var block_nbytes=8192;
 	    var total_nbytes=blocks_expected*block_nbytes;
 	    //var data=new ArrayBuffer();
 	    var received_bytes=0;
@@ -618,7 +729,8 @@ var f = new fits.file(post.fitsname); //The file is automatically opened (for re
 		];
 		
 //		var cuts=[100,45000];
-		var cuts=[2000,6000];
+//		var cuts=[2000,6000];   //10s
+		var cuts=[3800,10000];  //25s
 		
 		image.set_colormap(colormap);
 		image.set_cuts(cuts);

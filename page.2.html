@@ -68,9 +68,21 @@
 	<aside class="col-md-6">
 	    <h2 style="display:inline">Video</h2> &nbsp; &nbsp;
 	    <h4 style="display:inline; color:gray">last 25 images</h4>
-	    <video class="img-fluid" controls loop autoplay>	     
-	      <source src="./mnt/output.mp4" type="video/mp4">
+	    <video class="img-fluid" controls preload loop >	     
+	      <source src="./mnt/output.webm" type='video/webm; codecs="vp8, vorbis"'>
+	      <!-- <source src="./mnt/output.mp4"> -->
 	    </video>
+	    <script>
+  var v = document.getElementsByTagName("video");
+  v.onclick = function() {
+    if (v.paused) {
+      v.play();
+    } else {
+      v.pause();
+    }
+  };
+</script>
+
 	</aside>
 	
       </div>
