@@ -1,11 +1,12 @@
 #!/usr/bin/node
 
-var http = require('http'),                     /// http module
-wsserver = require('websocket').server;         /// websocket module (npm install websocket)
+var http = require('http');                     /// http module
+var wsserver = require('websocket').server;         /// websocket module (npm install websocket)
+var promise = require('promise');         
 
-var mysql = require('mysql')                     /// mysql module
+var mysql = require('mysql');                     /// mysql module
 
-var jall = require('./jallsky.8.js')                     /// my module
+var jall = require('./jallsky.8.js');                     /// my module
 
 var dbconnection = mysql.createConnection({
     host     : 'localhost',
@@ -66,15 +67,44 @@ ws.on('request', function(r){                   /// Listen connections
 	msgjson.id=client_id
 
 	if(msgjson.whoami=='client'){
-	    jall.launch_exposure(msgjson)
-	}
-	
-    	console.log("Message received from client n°: "+client_id+". The message is");
-    	console.log(msgjson);
-	
-	for(var i in clients)
-            clients[i].sendUTF(JSON.stringify(msgjson));      /// Send a message to the client with the message
 
+	    // function several_exposures(err) {
+	    // 	if(err!== null)
+     	    // 	    return console.log('several_exposure error: ', err);
+	    // 	console.log("several_exposures: routine called")
+	    // 	return new Promise(
+	    // 	    function (resolve, reject) {
+			jall.launch_exposure(msgjson,function(){
+    			    console.log("********"+i+"***************");
+			}) /// jall.launch_exposure	
+		    // 	resolve(
+		    // 	    console.log("********ok***************")
+		    // 	)
+		    // });		
+	    // }
+
+
+	    // for(var i=0;i<msgjson.nexp;i++){
+	    // 	msgjson.iteration=i
+	    // 	several_exposures()		
+	    // 	    .then(function(err){
+	    // 		console.log("********"+i+" end***************")
+	    // 	    })
+	    // 	    .catch(function(error) {
+	    // 		console.log("promise: "+error)
+	    // 	    })
+	    // } /// for i
+
+	    
+	} /// if msgjson
+	
+	    	    
+	    console.log("Message received from client n°: "+client_id+". The message is");
+    	    console.log(msgjson);		    
+	    	   
+	    for(var i in clients)
+		clients[i].sendUTF(JSON.stringify(msgjson));      /// Send a message to the client with the message 	    
+	    
     });
     
     /// 3b) Listen for client disconnection

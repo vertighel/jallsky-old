@@ -15,7 +15,7 @@
     
     var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     //var ws = new WebSocket('ws://192.168.0.6:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-    //var ws = new WebSocket('ws://87.15.121.195:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+    // var ws = new WebSocket('ws://87.15.121.195:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     
     /// yargs for arguments
     
@@ -500,10 +500,6 @@ function get_image(params, progress_callback, get_cb){
     console.log("exptime is "+exptime+" * 100us -->  "+ params.exptime+"sec,  up " + up + " mid " + mid + " low " + low  );
 
     var combuf=new Buffer(7);
-
-	console.log("***************************************************")
-	console.log(params)
-	console.log("***************************************************")
     
     combuf.writeUInt8(TAKE_IMAGE.charCodeAt(0),0);
     combuf.writeUInt8(up,1);
@@ -649,11 +645,17 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 //		var cuts=[100,45000];
 //		var cuts=[2000,6000];   //10s
 		var cuts=[3800,10000];  //25s
+
+
+		console.log("***************************************************")
+		console.log(params.width)
+		console.log(image.width)
+		console.log("***************************************************")
 		
 		image.set_colormap(colormap);
 		image.set_cuts(cuts);
 		var out = fs.createWriteStream(params.pngname);
-		out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [image.width,image.height], type : "png" }));
+		out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [image.width(),image.height()], type : "png" }));
 		out.end();
 
 		    console.log("create_png: written")
@@ -670,7 +672,7 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 }
 
 
-    function launch_exposure(params){
+    function launch_exposure(params,cb){
 
 	/*
 	{
@@ -816,6 +818,7 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 		    
 		    close_shutter(function (err, res){
 			if(err!==null) return console.log("close_shutter error: "+err);		    
+			
 		    }); /// close_shutter
 		    
 		}); /// get_image
@@ -823,7 +826,8 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
             }); /// open_shutter
 
         }); /// define_subframe
-	    
+
+	cb()
     } /// launch_exposure
     
     module.exports = {

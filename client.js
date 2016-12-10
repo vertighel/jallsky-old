@@ -21,10 +21,10 @@ $("form").on("submit",function(event){
  
 });
 
-/* opening a websocket connection to interact with other users */
+/* opening a websocket connection to interact with other users.  Where is server.js? */
 var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 //var ws = new WebSocket('ws://192.168.1.23:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-//var ws = new WebSocket('ws://87.15.121.195/:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+// var ws = new WebSocket('ws://87.15.121.195:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 
 
 var tot=[] /// creating a new array to contain my data and other user's data
@@ -34,6 +34,8 @@ ws.addEventListener("message", function(e) { /// creates an event listener for s
     /// Messages are arriving from the allskycam or from the client
     
     if(obj.whoami=="get_bytes"){
+	$("#iteration").val(obj.iteration)
+	$("#total_exp").val(obj.nexp)
 	$("#transfer_progress").val(obj.percent)
 	$("#transfer_output").text(obj.percent)
     }
