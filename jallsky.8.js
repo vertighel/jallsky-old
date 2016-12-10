@@ -1,243 +1,130 @@
 #!/usr/bin/node
 
-var serialport = require('serialport'); /// include the library
-///var buffer = require('buffer'); /// Interpreting bytes as packed binary data
-var fs=require("fs") /// file stream
+"use strict";
 
-var Promise = require('promise');
+(function(){
 
-var fits = require('../node-fits/build/Release/fits');
-
-/// yargs for arguments
-
-//////////////////////////////////////////////////
-/// Constant commands
-
-/// Test Commands
-const COM_TEST = 'E';
-
-/// Shutter Commands
-const OPEN_SHUTTER  = 'O';
-const CLOSE_SHUTTER = 'C';
-const DE_ENERGIZE   = 'K';
-
-/// Heater Commands
-const HEATER_ON  = 'g\x01';
-const HEATER_OFF = 'g\x00';
-
-/// Setup Commands
-const GET_FVERSION = 'V';
-const GET_SERIAL   = 'r';
-const BAUD_RATE    = {9600: 'B0',
-		      19200: 'B1',
-		      38400: 'B2',
-		      57600: 'B3',
-		      115200: 'B4',
-		      230400: 'B5',
-		      460800: 'B6'};
-
-/// Imaging Commands
-const TAKE_IMAGE  = 'T';
-const ABORT_IMAGE = 'A';
-const XFER_IMAGE  = 'X';
-
-const CSUM_OK    = 'K';
-const CSUM_ERROR = 'R';
-const STOP_XFER  = 'S';
-
-const EXPOSURE_IN_PROGRESS = 'E';
-const READOUT_IN_PROGRESS  = 'R';
-const EXPOSURE_DONE        = 'D';
-
-const MAX_EXPOSURE         = 0x63FFFF;
-
-/// Guiding Commands
-const CALIBRATE_GUIDER = 'H';
-const AUTO_GUIDE       = 'I';
-const TERMINATOR       = String.fromCharCode(0x1A);
-
-/// Other Constants
-const PIXEL_SIZE = 2;
-
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-////////////////////////////////////////////////////////////
-
-    portName = process.argv[2]    
-    TEMPO = process.argv[3]    
-
-var sp = new serialport(portName,
-			{
-			    parser: serialport.parsers.raw,
-			    autoOpen: false,
-			    baudRate: 115200,
-			    dataBits: 8,
-			    stopBits: 1,
-			    parity: "none",
-			    
-			},
-			function(err){			    
-			    if (err) {
-				return console.log('Error: ', err.message);
-			    }
-			}
-		       );
-
-//sp.on('open',  showPortOpen);
-sp.on('close', showPortClose);
-sp.on('disconnect', showPortDisconnect);
-sp.on('error', showError);
-sp.on('data',  sendSerialData);
-
-function showPortOpen(error) {
-    return new Promise(
-        function (resolve, reject) {
-	    if(error!==null){
-		console.log('Error while opening the port ' + error)
-	    }else{
-		console.log('port open. Data rate: ' + sp.options.baudRate)
-	    }
-//		resolve(console.log('port open. Data rate: ' + sp.options.baudRate));
-//		reject(console.log('Error while opening the port ' + error) );
-//	    }else{
-//	    }
-        });
-
-}
-
-sp.open(function(err){
-
-    showPortOpen()
-	// .then(function(result1){
-	//     return send_test();
-	// })
-	// .then(function(result2){
-	//     return get_serial_number();
-	// })
-	// .then(function(result3){
-	//     return get_firmware_version();
-	// })
-	// .then(function(result){
-	//     return open_shutter();
-	// })
-	// .then(function(result){
-	//     return get_image(cb);
-	// })
-	// .then(function(result){
-	//     return close_shutter();
-	// })
-	// .catch(function(error) {
-	//     console.log("there was an error: "+error)
-	// });
+    var serialport = require('serialport'); /// include the library
+    var fs=require("fs") /// file stream
     
-   });
-
-	
-function showPortOpen(error) {
+    var julian = require("julian");
+    var mysql = require("mysql");
+    var fits = require('../node-fits/build/Release/fits');
     
-    if (error) {
-	console.log('Error while opening the port ' + error);
-    } else {
-	console.log('port open. Data rate: ' + sp.options.baudRate);
-	
-        send_command(COM_TEST, function(err,res){
+    var WebSocket = require('ws')
+    
+    var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+    //var ws = new WebSocket('ws://192.168.0.6:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+    //var ws = new WebSocket('ws://87.15.121.195:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+    
+    /// yargs for arguments
+    
+    // sudo npm cache clean -f
+    // sudo npm install -g n
+    // sudo n stable
+    
+    //////////////////////////////////////////////////
+    /// Constant commands
+    
+    /// Heater Commands
+    const HEATER_ON  = 'g\x01';
+    const HEATER_OFF = 'g\x00';
 
-	    if(err!==null) return "Com test failed" ;
-
-	    send_command(GET_SERIAL, function(err, data){
-		if(err!==null) return console.log("Error get serial number: " + err);
-		var serial=data.toString('ascii');
-		console.log("Serial Number : [" + serial + "] NB=" + data.length );
-		
-		send_command(GET_FVERSION, function(err, data){
-		    if(err!==null) return console.log("Error get firmware: " + err);
-		    var version = data.readInt16LE(0);
-		    console.log("Firmware version : " + version);
-		    
-		    open_shutter(function (err, res){
-			
-			if(err!==null) return;
-			
-			get_image(TEMPO , function(){}, function(err, image_data){
-			    
-			    console.log("Done get image !");
-			    
-			    var fifi=new fits.file; 
-			    fifi.file_name="test.fits";
-			    var M=new fits.mat_ushort;
-			    M.set_data(640,480, image_data);
-			    
-			    fifi.write_image_hdu(M);
-  
-			    fifi.read_image_hdu(function(error, image){
-				if(error){
-				    console.log("Bad things happened while reading image hdu : " + error);
-				    return;
-				}
+    /// Imaging Commands
+    const TAKE_IMAGE  = 'T';
+    const ABORT_IMAGE = 'A';
+    const XFER_IMAGE  = 'X';
+    
+    const CSUM_ERROR = 'R';
+    const STOP_XFER  = 'S';
+    
+    const EXPOSURE_IN_PROGRESS = 'E';
+    const EXPOSURE_DONE        = 'D';
+    const READOUT_IN_PROGRESS  = 'R';
+    
+    var fits_dir="./mnt/fits/"
+    var png_dir="./mnt/png/"
+    
+    /// CREATE TABLE allskycam (id int auto_increment primary key, 
+    /// fitsname varchar(256), dateobs varchar(23), pngname varchar(256), jd double, exptime float);
+    var connection = mysql.createConnection({
+	host     : 'localhost',
+	user     : 'root',
+	password : 'password',
+	database : 'test'
+    });
+    
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////
+    
+    // portName = process.argv[2] /// device/port   
+    // TEMPO =  process.argv[3]    /// seconds
+    
+    var portName = '/dev/ttyUSB0' /// device/port   
+    
+    var sp = new serialport(portName,
+			    {
+				parser: serialport.parsers.raw,
+				autoOpen: false,
+				baudRate: 115200, // 115200, 230400, 460800,
+				dataBits: 8,
+				stopBits: 1,
+				parity: "none",
 				
-				if(image){
-	    
-				    var colormap=[ [0,0,0,1,0],
-						   [1,0,1,1,.8],
-						   [1,.2,.2,1,.9],
-						   [1,1,1,1,1]
-						 ];
-				    var cuts=[1000,3000];
-				    
-				    image.set_colormap(colormap);
-				    image.set_cuts(cuts);
-	    
-				    var out
-				    out = fs.createWriteStream("test.png");
-				    out.write(image.tile( { tile_coord :  [2,3], zoom :  10, tile_size : [640,480], type : "png" }));
-				    out.end();
-
-				}
+			    },
+			    function(err){			    
+				if(err!== null)
+				    return console.log('serialport instance error: ', err.message);
 			    });
-			    
-			    
-			    close_shutter(function (err, res){
-				if(err!==null) return;
-				console.log("Shutter closed !");
-				sp.close(); return;
-			    }); /// close shutter
-			    
-			}); /// get image
-		    });  /// open_shutter
-		    		    
-		}, 3); /// send_command get version
-		
-	    }, 11);  /// send_command get serial
-	    
-	}, 2);  /// send_command com test
-	
-    } /// else
+    
+    sp.on('open',  showPortOpen);
+    sp.on('close', showPortClose);
+    sp.on('disconnect', showPortDisconnect);
+    sp.on('error', showError);
+    sp.on('data',  sendSerialData);
+    
+    sp.open(function(err){    
+	showPortOpen(err)
+    }); /// sp.open
+    
+    // sp.close(function(err) {
+    // 	showPortClose(err)
+    // }); /// sp.close
 
-} /// showPortOpen
-
-
-var data_listener_func=null;
-
-function sendSerialData(data){
-    if(data_listener_func!==null){
-	data_listener_func(data);
+    var data_listener_func=null;
+    
+    function sendSerialData(data){
+	if(data_listener_func!==null)
+	    data_listener_func(data);
     }
-}
+    
+    function showPortOpen(err) {
+	if(err!== null) return console.log('showPortOpen error: ', err);
+	console.log('showPortOpen: port open. Data rate: ' + sp.options.baudRate)
+    }
+        
+    function showPortClose(err) {
+	if(err!== null) return console.log('showPortClose error: ', err);
+	console.log('showPortClose: Port closed.');
+    }
 
-function showPortClose() {
-    console.log('Port closed.');
-}
+    function showPortDisconnect(err) {
+	if(err!== null) return console.log('showPortDisconnect error: ', err);	
+	console.log('showPortDisconnect: Port disconnected.');
+    }
 
-
-function showPortDisconnect() {
-    console.log('Port disconnected.');
-}
-
-
-function showError(error) {
-    console.log('Serial port error: ' + error);
-}
-
+    function showError(err) {
+	if(err!== null) return console.log('showError error: ', err);	
+	console.log('showError: serial port error: ' + err);
+    }
+    
+    /// check_error(arguments.callee.name,err); /// does not work in strict mode
+    function check_error(fun,err) {
+	if(err!== null) return console.log(fun+' ERROR: '+err);
+	console.log(fun+' called without errors.')
+    }
+    
 ////////////////////////////////////////////////////////////
 /// The checksum is simply calculated by complementing the byte,
 /// clearing the most significant bit and XOR with the current
@@ -253,6 +140,7 @@ function checksum_buf(com){
 	cs = cs ^ csb;
     }
     com.writeUInt8(cs,cl-1);
+    console.log("ckecksum ok!!!!")
 }
 
 function checksum(com){
@@ -311,16 +199,16 @@ function get_bytes(nb, cb, skip){
     } /// data listener_func
 } /// get_bytes
 
-
 /// Send Command
 function send_command (command, callback, nb) {
-    cs = checksum(command)
+    var cs = checksum(command)
 
     var cmd=command+cs;
-    console.log("Sending command ["+command+"]... Length="+cmd.length + " Checksum=" + cs.charCodeAt(0));
+    console.log("Sending command ["+command+"]; checksum ["+cs.charCodeAt(0)+"]; length="+cmd.length+" number of bytes="+nb);
 
     function on_data(buf){
 	var received_cs=buf.readUInt8(0);
+
 	var received_data=buf.slice(1); /// cut the first element
 	
 	if(received_cs!==cs.charCodeAt(0)){  /// checksum matching
@@ -330,7 +218,8 @@ function send_command (command, callback, nb) {
 	}
 	
 	callback(null, received_data);
-    }
+
+    } /// on_data
     
     if(nb===undefined)
 	data_listener_func=on_data;
@@ -355,74 +244,89 @@ function send_command (command, callback, nb) {
 
 /// Sending test command
 function send_test(cb){
-    send_command(COM_TEST, function(err,data){
+    send_command('E', function(err,data){
 	if(err!==null) return console.log("Error sending test command: " + err);
 	console.log("Sent test. Received response. Is it 'O'? : " + data);
-	if(data=="O"){
+	if(data=='O'){
 	    console.log("Response is ok!" )
 	}else{
 	   return console.log("Response is not ok: " + err)
 	}
-    }
-		 ,2);
-
+	cb()
+    }, 2);    
 }
 
 /// Request version information from the camera returns a hex string
 /// of the version numbers
 function get_firmware_version(cb){
-    send_command(GET_FVERSION, function(err,data){
+    send_command('V', function(err,data){
 	if(err!==null) return console.log("Error getting firmware version: " + err);
 	var version = data.readInt16LE(0);
 	console.log("Firmware version : [" + version + "] NB=" + data.length );
-    }
-		 ,3);
-    
+	cb()
+    }, 3);
 }
 
 /// Returns the camera's serial number
 function get_serial_number(cb){
-    send_command(GET_SERIAL, function(err,data){
+    send_command('r', function(err,data){
 	if(err!==null) return console.log("Error getting serial number: " + err);
 	var serial=data.toString('ascii');
 	console.log("Serial Number : [" + serial + "] NB=" + data.length );
-    }
-		 ,11);
+	cb()
+    }, 11);
+}
+
+/// Switches on the heater
+function heater_on(cb){
+    send_command(HEATER_ON, function(err,data){
+	if(err!==null) return  console.log("Error switching on the heater: " + err);
+	console.log("Heater on!");
+	cb()
+    }, undefined);
+}
+
+/// Switches off the heater
+function heater_off(cb){
+    send_command(HEATER_OFF, function(err,data){
+	if(err!==null) return  console.log("Error switching off the heater: " + err);
+	console.log("Heater off!");
+	cb()
+    }, undefined);
 }
 
 
 /// Open the camera shutter.
 /// n.b. leaves the shutter motor energized
 function  open_shutter(cb){
-    send_command(OPEN_SHUTTER, function(err,data){
+    send_command('O', function(err,data){
 	if(err!==null) return  console.log("Error opening shutter: " + err);
 	console.log("Shutter open !");
 	setTimeout(function(){
-	    send_command(DE_ENERGIZE, cb);
-	},1000) //1 seconde = 1000ms....	
-    });
+	    send_command('K', cb, undefined);  /// DE_ENERGIZE
+	},100) //1 second = 1000ms....	
+    }, undefined);
 }
 
 
 /// Close the camera shutter.
 /// n.b. leaves the shutter motor energized
 function  close_shutter(cb){
-    send_command(CLOSE_SHUTTER,function(err,data){
+    send_command('C',function(err,data){
 	if(err!==null) return  console.log("Error closing shutter: " + err);
- 	console.log("Shutter closed !");
+ 	console.log("Shutter closed !!");
 	setTimeout(function(){
-	    send_command(DE_ENERGIZE, cb)
-	},1000) //1 second = 1000ms....
-	
-    });
-    
+	    send_command('K', cb, undefined) /// DE_ENERGIZE
+	},100) //1 second = 1000ms....	
+    }, undefined);
 }
 
 
 /// Request the camera to automatically calibrate the guider.
 /// returns the string of calibration data sent back from camera
 function  calibrate_guider(cb){
-    send_command(CALIBRATE_GUIDER, function(err, res){
+    const TERMINATOR = String.fromCharCode(0x1A);
+    send_command('H', function(err, res){
 	if(err!==null) return cb(err);
 	response = '';
 	a = '';
@@ -431,14 +335,15 @@ function  calibrate_guider(cb){
 	    response += a;
 	}
 	cb(null, response);
-    });
+    }, undefined);
 
 }
     
 /// Begin autonomous guiding process
 /// returns -- Data sent back from camera
 function  autonomous_guide(cb){
-    send_command(AUTO_GUIDE, function(err, res){
+    const TERMINATOR = String.fromCharCode(0x1A);
+    send_command('I', function(err, res){
 	response = '';
 	a = '';
 	while(a != TERMINATOR){
@@ -446,21 +351,140 @@ function  autonomous_guide(cb){
 	    response += a;
 	}
 	cb(null, response);
-    });
+    }, undefined);
     
 }
 
 
+
+/// This command defines the location and size of the sub-frame. The
+/// maximum size of the sub- frame is 127 pixels. This command does not
+function define_subframe(params,cb){
+
+    console.log(params)
+    
+    if(params.frametyp == 'custom'){
+
+	if((params.x_start || params.y_start ||params.size) == undefined) cb("aaa")
+    
+	var x = new Buffer(4); //Enough place for a long int
+	x.writeInt32LE(params.x_start);  //Little endian for Upper byte first...
+	
+	var xup  = x.readUInt8(1); //On fait ca en details... trop!, mais c'est pour etre sur!
+	var xlow = x.readUInt8(0);
+	
+	var y = new Buffer(4); //Enough place for a long int
+	y.writeInt32LE(params.y_start);  //Little endian for Upper byte first...
+	
+	var yup  = y.readUInt8(1); //On fait ca en details... trop!, mais c'est pour etre sur!
+	var ylow = y.readUInt8(0);
+	
+	var s = new Buffer(4); //Enough place for a long int
+	s.writeInt32LE(params.size);  //Little endian for Upper byte first...
+	
+	var sz = s.readUInt8(0);
+	
+	var combuf=new Buffer(7);
+	
+	console.log("xlow " + xlow + " ylow " + ylow + " size " + sz  );
+	
+	combuf.writeUInt8('S'.charCodeAt(0),0);
+	combuf.writeUInt8(xup,1);
+	combuf.writeUInt8(xlow,2);
+	combuf.writeUInt8(yup,3);
+	combuf.writeUInt8(ylow,4);
+	combuf.writeUInt8(sz,5); /// max 127
+	
+	checksum_buf(combuf);
+	
+	var com=combuf;
+	var cmd_checksum=combuf.readUInt8(6);
+	
+	console.log("define_subframe checksum is " + cmd_checksum);
+	console.log("Length of com=" + com.length + " should be 7?");
+		
+	sp.write(combuf, function (err) {
+	    if (err) {
+		console.log("Error while sending ["+command+"] : " + err);
+		cb(err);
+	    }
+	});
+
+	
+	cb(null)
+
+    } /// if custom
+
+    cb(null)
+    
+    // send_command(combuf, function(err, res){
+    // 	if(err!==null) return cb(err);
+    // }, 7);
+    
+}
+
 /// Fetch an image from the camera
 /// exposure -- exposure time in seconds
 /// progress_callback -- Function to be called after each block downloaded
-/// returns an astropy HDUList object
-
-function get_image(exposure, progress_callback, get_cb){
-
+function get_image(params, progress_callback, get_cb){
+    
     /// Camera expsosure time works in 100µs units
-    var exptime = exposure / 100e-6;
+    const MAX_EXPOSURE = 0x63FFFF;
+    var exptime = params.exptime / 100e-6;
 
+    // var imagetyp;  /// 2=L-D, 1=L, 0=D
+    // var frametyp;  /// 2=binned, 1=cropped,0=full, 0xff=subframe
+
+    // var width,height,blocks
+
+    // switch(params.imagetyp) {
+    // case 'light-dark':        
+    // 	imagetyp=2
+    // 	frametyp=2
+    // 	width=320
+    // 	height=240
+    // 	blocks=1024
+    //     break;
+    // case 'light':
+    // 	imagetyp=1
+    //     break;
+    // case 'dark':
+    // 	imagetyp=0
+    //     break;
+    // default:
+    // 	imagetyp=1	
+    // }
+    
+
+    // switch(params.frametyp) {
+    // case 'full':     
+    // 	frametyp=0
+    // 	width=640
+    // 	height=480
+    // 	blocks=4096
+    //     break;
+    // case 'cropped':
+    // 	frametyp=1
+    // 	width=512
+    // 	height=480
+    // 	blocks=4096
+    //     break;
+    // case 'custom':
+    // 	frametyp=0xff
+    // 	width=params.size
+    // 	height=params.size
+    // 	blocks=params.size
+    //     break;
+    // default:
+    // 	frametyp=0
+    // 	width=640
+    // 	height=480
+    // 	blocks=4096
+    // }
+
+    var blocks_expected = (params.width * params.height) / params.blocks;
+    var block_nbytes=2*params.blocks;
+    
     if(exptime > MAX_EXPOSURE){
 	exptime = MAX_EXPOSURE;
 	exposure = 653.3599;
@@ -473,16 +497,20 @@ function get_image(exposure, progress_callback, get_cb){
     var mid=exp.readUInt8(1);
     var low=exp.readUInt8(0);
     
-    console.log("exptime is "+exptime+" * 100us -->  "+ exposure+"sec,  up " + up + " mid " + mid + " low " + low  );
+    console.log("exptime is "+exptime+" * 100us -->  "+ params.exptime+"sec,  up " + up + " mid " + mid + " low " + low  );
 
     var combuf=new Buffer(7);
 
+	console.log("***************************************************")
+	console.log(params)
+	console.log("***************************************************")
+    
     combuf.writeUInt8(TAKE_IMAGE.charCodeAt(0),0);
     combuf.writeUInt8(up,1);
     combuf.writeUInt8(mid,2);
     combuf.writeUInt8(low,3);
-    combuf.writeUInt8(0,4);
-    combuf.writeUInt8(1,5);
+    combuf.writeUInt8(params.frcode,4); /// 2=binned, 1=cropped,0=full, 0xff=subframe
+    combuf.writeUInt8(params.imcode,5); /// 2=L-D, 1=L, 0=D
 
     checksum_buf(combuf);
 
@@ -492,12 +520,11 @@ function get_image(exposure, progress_callback, get_cb){
     console.log("Take image checksum is " + cmd_checksum);
     console.log("Length of com=" + com.length + " should be 7?");
 
-    
     var timestamp = new Date();
     timestamp = timestamp.toISOString();
     
-
     console.log('Beginning Exposure')
+    var start_time = new Date().getTime(); /// in ms
 
     var first_data_received=true;
     
@@ -512,15 +539,27 @@ function get_image(exposure, progress_callback, get_cb){
 	    }else
 		console.log("Checksum match !");
 	}
-	else
+	else{
 	    console.log("GetImage received progress data ["+in_data.toString('ascii')+"]");
-	
+
+	    var mid_time = new Date().getTime(); //in ms
+	    var time_elapsed = ((mid_time-start_time)/1000).toFixed(3) /// in s
+	    
+	    var message={whoami:"image_data_func",
+	    		 exposure_time : params.exptime, 
+	    		 time_elapsed   : time_elapsed,
+	    		 percent        : ((time_elapsed/params.exptime)*100).toFixed(0),
+	    		}
+	    
+	    ws.send(JSON.stringify(message),function(err,res){
+	    	if(err !=null) console.log("Websocket error sending message: "+err)
+	    })
+	   
+	}
+	    
 	if(in_data == EXPOSURE_DONE){
 	    
-	    
-	    var blocks_expected = (640 * 480) / 4096;
 	    var blocks_complete = 0;
-	    var block_nbytes=8192;
 	    var total_nbytes=blocks_expected*block_nbytes;
 	    //var data=new ArrayBuffer();
 	    var received_bytes=0;
@@ -544,23 +583,28 @@ function get_image(exposure, progress_callback, get_cb){
 		var csum_in=in_data.readUInt8(block_nbytes);
 		
 		received_bytes+=block_nbytes;
-		
 
-		console.log("Received image data  (8193 =?" + nb + " Total image bytes="+received_bytes + "/" + total_nbytes + " CSUM=" + cs + " CSUM IN " + csum_in + "      \r");
+		var message={whoami:"get_bytes",
+			     received_bytes : received_bytes,
+			     total_nbytes   : total_nbytes,
+			     percent        : (received_bytes/total_nbytes*100).toFixed(0),
+			    }
 		
+		ws.send(JSON.stringify(message),function(err,res){
+		    if(err !=null) console.log("Websocket error sending message: "+err)
+		})		    
+	
 		if(received_bytes===total_nbytes){
-		    sp.write(CSUM_OK);
+		    sp.write('K'); /// Checksum OK
 		    console.log("Received all data !")
 		    get_cb(null, image_data);
 		}
 		else
-		    sp.write(CSUM_OK);
+		    sp.write('K');  /// Checksum OK
 	    }, 1);
 	    
 	    send_command(XFER_IMAGE, function(err, res){
-		if(err!==null)
-		    return cb(err);
-		
+		if(err!==null) return cb(err);		
 	    }, null);
 	    
 	}
@@ -572,8 +616,231 @@ function get_image(exposure, progress_callback, get_cb){
 	if(err!==null) return get_cb(err);
 	console.log("Command TAKEIMAGE sent ok!");
     });
+   
+}
 
+function create_png(params,cb){
+    console.log("create_png: called")
+    
+var f = new fits.file(params.fitsname); //The file is automatically opened (for reading) if the file name is specified on constructor.
 
+    f.get_headers(function(error, headers){
+    
+	if(error) return console.log("Bad things happened : " + error);
+	
+	f.read_image_hdu(function(error, image){
+	    
+	    if(error) return console.log("Bad things happened while reading image hdu : " + error);
+	    
+	    if(image){
+		
+		//for (var ip in image) console.log("IP : " + ip);
+		
+		console.log("Image size : " + image.width() + " X " + image.height()); 
+		
+		var colormap=[
+		    //R  //G  //B  //A  //level: 0=min,1=max
+		    [0.0, 0.0, 0.0, 1.0, 0.0],
+//		    [0.4, 0.4, 0.4, 1.0, 0.8],
+//		    [0.8, 0.8, 0.8, 1.0, 0.9],
+		    [1.0, 1.0, 1.0, 1.0, 1.0]
+		];
+		
+//		var cuts=[100,45000];
+//		var cuts=[2000,6000];   //10s
+		var cuts=[3800,10000];  //25s
+		
+		image.set_colormap(colormap);
+		image.set_cuts(cuts);
+		var out = fs.createWriteStream(params.pngname);
+		out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [image.width,image.height], type : "png" }));
+		out.end();
+
+		    console.log("create_png: written")
+
+	    }
+	    
+	});
+
+	cb();
+	
+    });
+    console.log("create_png: ended")
     
 }
 
+
+    function launch_exposure(params){
+
+	/*
+	{
+	    "observer": "",
+	    "imagetyp": "light",
+	    "exptime": "0.001",
+	    "nexp": "1",
+	    "frametyp": "full",
+	    "whoami": "client"
+	}
+*/
+
+
+    var imcode;  /// 2=L-D, 1=L, 0=D
+    var frcode;  /// 2=binned, 1=cropped,0=full, 0xff=subframe
+
+    var width,height,blocks
+
+    switch(params.imagetyp) {
+    case 'light-dark':        
+    	imcode=2
+    	frcode=2
+	width=320
+	height=240
+	blocks=1024
+        break;
+    case 'light':
+    	imcode=1
+        break;
+    case 'dark':
+    	imcode=0
+        break;
+    default:
+    	imcode=1	
+    }
+    
+	if(params.imagetyp != 'light-dark'){
+	    switch(params.frametyp) {
+	    case 'full':     
+    		frcode=0
+		width=640
+		height=480
+		blocks=4096
+		break;
+	    case 'cropped':
+    		frcode=1
+		width=512
+		height=480
+		blocks=4096
+		break;
+	    case 'custom':
+    		frcode=0xff
+		width=params.size
+		height=params.size
+		blocks=params.size
+		break;
+	    default:
+    		frcode=0
+		width=640
+		height=480
+		blocks=4096
+	    }
+	}
+	    
+	params.width=width;
+	params.height=height;
+	params.blocks=blocks;
+	params.imcode=imcode;
+	params.frcode=frcode;
+	
+	define_subframe(params,function(err){
+	    if(err!==null) return console.log("define_subframe error: "+err);
+	
+	    open_shutter(function (err, res){
+		if(err!==null) return console.log("close_shutter error: "+err);
+		
+		get_image(params , function(){}, function(err, image_data){
+		    if(err!== null) return console.log('a_get_image error: ', err);
+		    
+		    console.log("get_image: routine called. Got image!")		
+		    
+		    var now      = new Date(); /// Time stamp to be used for file names, DATE-OBS and JD
+		    var dateobs  = now.toISOString().slice(0,-1)  /// string
+		    var jd       = parseFloat(julian(now))        /// double
+		    var fitsname = fits_dir+dateobs+".fits"
+		    var pngname  = png_dir +dateobs+".png"
+		    
+		    var fifi     = new fits.file(fitsname); 
+		    var M        = new fits.mat_ushort;
+		    
+		    M.set_data(width,height, image_data);
+		    fifi.file_name;		
+		    fifi.write_image_hdu(M);
+		    
+		    fifi.set_header_key([
+			{ key : "DATE-OBS",
+			  value : dateobs,
+			  comment : "Observation date from laptop, synchronized with NTP"},
+			{ key : "JD",
+			  value : jd,
+			  comment : "Julian Date from laptop, synchronized with NTP"},
+			{ key : "EXPTIME",
+			  value : params.exptime+0,
+			  comment : "Exposure time in seconds"},
+		    ], function(err){
+    			if(err!== null)
+			    console.log("Error setting fits header:")		    
+		    });
+		    
+		    
+		    var post  = {fitsname:fitsname, pngname:pngname, jd:jd, dateobs:dateobs, exptime:params.exptime };
+		    params.fitsname=fitsname
+		    params.pngname=pngname
+		    params.jd=jd
+		    params.dateobs=dateobs
+		    
+		    var query = connection.query('INSERT INTO allskycam SET ?', post, function(err, result) {
+    			if(err!== null){
+			    console.log("Error retreiving image: "+err)
+			    console.log("Closing the db connection!")
+    			    connection.end() /// closing mysql connection	    
+			}
+			console.log("Executed the following mysql query: "+query.sql);
+			//    		    connection.end() /// closing mysql connection	    
+			
+		    });	
+		    
+		    create_png(params, function(){
+			console.log("callback of create_png: called")
+			
+			setTimeout(function(){
+			    params.whoami="create_png"
+//			    console.log(post)
+			    ws.send(JSON.stringify(params),function(err,res){
+				if(err !=null) console.log("Websocket error sending message: "+err)
+				console.log("sending post to server.js")
+				console.log(params)			    
+			    })		    
+			    //			ws.close();		    
+			},3000) //1 second = 1000ms....	
+			
+		    })		
+		    
+		    close_shutter(function (err, res){
+			if(err!==null) return console.log("close_shutter error: "+err);		    
+		    }); /// close_shutter
+		    
+		}); /// get_image
+		
+            }); /// open_shutter
+
+        }); /// define_subframe
+	    
+    } /// launch_exposure
+    
+    module.exports = {
+
+	send_test            : send_test            ,
+	get_serial_number    : get_serial_number    ,
+	get_firmware_version : get_firmware_version ,
+	
+	launch_exposure      : launch_exposure      , //open, get, close
+	
+	define_subframe      : define_subframe      ,
+	open_shutter         : open_shutter         ,	  
+	get_image            : get_image            ,	  
+	close_shutter        : close_shutter        ,
+	heater_on            : heater_on            ,
+	heater_off           : heater_off           ,
+	
+    }
+
+}).call(this);

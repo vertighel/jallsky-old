@@ -14,6 +14,8 @@
     <link href="../bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Custom styles for this template -->
     <!-- <link href="jumbotron.css" rel="stylesheet"> -->
+    
+    <script src="../../js/jquery-latest.min.js"></script>
 
   <body>
 
@@ -44,51 +46,150 @@
 
       <!-- Example row of columns -->
       <div class="row">
-        <!-- <article> -->
-        <!--   <h2>Heading</h2> -->
-	<!--   <form> -->
-	<!--   <input type="number" class="form-control" min="0" max="120" step="1"> -->
-        <!--   <label class="form-check-label"> -->
-        <!--     <input class="form-check-input" type="checkbox"> Auto -->
-        <!--   </label> -->
-	<!--   </form> -->
-        <!--   <p>Donec id elit non mi porta gravida at eget metus. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus. Etiam porta sem malesuada magna mollis euismod. Donec sed odio dui. </p> -->
-        <!--   <p><a class="btn btn-secondary" href="#" role="button">View details &raquo;</a></p> -->
-        <!-- </article> -->
+	
+        <article class="col-md-8">
+          <h2>Input parameters</h2>
 
-	<figure class="col-md-6">
-	    <h2 style="display:inline"></h2> &nbsp; &nbsp;
+	  <form>
+	    <div class="form-group">
+
+	      <div class="form-group row">
+		<label for="observer" class="col-sm-2 col-form-label">Observer</label>
+		<div class="col-sm-6">
+		  <input class="form-control" type="text" placeholder="Observer name" id="observer" name="observer">
+		</div>
+	      </div>
+
+	      <div class="form-group row">
+		<label for="imagetyp" class="col-sm-2 col-form-label" >Type</label>
+		<div class="col-sm-6">
+		  <select class="form-control" id="imagetyp" name="imagetyp">
+		    <option value="light">Light</option>
+		    <option value="dark">Dark</option>
+		    <option value="light-dark">Light-Dark</option>
+		  </select>
+		</div>
+	      </div>
+
+	      <div class="form-group row">
+		<label for="exptime" class="col-sm-2 col-form-label">Exptime</label>
+		<div class="col-sm-6">
+		  <input class="form-control" type="number" value="3" min="0" max="600" id="exptime" name="exptime">
+		</div>
+	      </div>
+
+	      <div class="form-group row">
+		<label for="nexp" class="col-sm-2 col-form-label">N. exp</label>
+		<div class="col-sm-6">
+		  <input class="form-control" type="number" value="1" min="1" max="300" id="nexp" name="nexp">
+		</div>
+	      </div>
+	      
+	      <div class="form-group row">
+		<label for="frametyp" class="col-sm-2 col-form-label" >Frame</label>
+		<div class="col-sm-6">
+		  <select class="form-control" id="frametyp" name="frametyp">
+		    <option value="full">Full</option>
+		    <option value="cropped">Cropped</option>
+		    <!-- <option value="binned">Binned</option> -->
+		    <option value="custom">Custom</option>
+		  </select>
+		</div>
+	      </div>
+
+	      <div class="form-group row">
+		<label for="size" class="col-sm-2 col-form-label">Size</label>
+		<div class="col-sm-6">
+		  <input disabled class="form-control" type="number" value="100" min="1" max="127" step="1" id="size" name="size">
+		</div>
+	      </div>
+
+	      <div class="form-group row">			
+		<span class="col-sm-2 col-form-label">Start X,Y</span>
+		<label for="x_start" class="sr-only">x</label>
+		<div class="col-sm-3">
+		  <input disabled class="form-control" type="number" value="42"  min="0" max="639" step="1" id="x_start" name="x_start">
+		</div>
+		  <!-- </div> -->
+		  <!-- <div class="form-group row"> -->
+		  	<label for="y_start" class="sr-only">Y</label>
+		  <div class="col-sm-3">
+		    <input disabled class="form-control" type="number" value="42"  min="0" max="479" step="1" id="y_start" name="y_start">
+		  </div>
+	      </div>
+	    </div>
+	    <script>
+
+$("#imagetyp").change(function(){
+    var ifdark = this.value == "dark"
+    $("#exptime").prop("disabled",ifdark)	
+    
+    var ifcust = $("#frametyp").prop("value")  == "custom"
+    var ifld = this.value == "light-dark" 
+
+    var iftwo = !(ifld==false && ifcust == true)
+
+    $("#frametyp").prop("disabled",ifld)	
+    $("#size,#x_start,#y_start").prop("disabled",iftwo)
+    
+})
+
+
+$("#frametyp").change(function(){
+	var bool=this.value != "custom"
+	$("#size,#x_start,#y_start").prop("disabled",bool)	
+
+})
+
+$("#size").change(function(){
+    var s=this.value
+    var xmax=640-s
+    var ymax=480-s
+    $("#x_start").prop("max",xmax)
+    $("#y_start").prop("max",ymax)
+
+    var xval=parseInt($("#x_start").prop("value"))
+    var yval=parseInt($("#y_start").prop("value"))
+    if (xval > xmax) $("#x_start").prop("value",xmax)
+    if (yval > ymax) $("#y_start").prop("value",ymax)    
+})
+	    </script>
+
+    <button type="submit" class="btn btn-primary">Expose</button>
+
+</form>
+
+          <p><a class="btn btn-secondary" href="#" role="button" onclick="ciccio()">Get Firmware</a></p>
+	  
+
+	</article>
+
+	<figure class="col-md-4">
+	    <h2 style="display:inline">dummy</h2> &nbsp; &nbsp;
 	    <h4 style="display:inline; color:gray"></h4>
 	  <img class="img-fluid">
 	  <figcaption>
+
+	    <div class="text-md-center">Exposure
+	      <output for="exposure_progress" id="exposure_output">0</output>%
+	    </div>
+	    <progress id="exposure_progress" aria-describedby="exposure_output" class="progress" value="0" max="100" ></progress>
+
+	    <div class="text-md-center">Transfer
+	      <output for="transfer_progress" id="transfer_output">0</output>%
+	    </div>
+	    <progress id="transfer_progress"  aria-describedby="transfer_output" class="progress" value="0" max="100"></progress>
+
 	    <span></span>
 	  </figcaption>
 	</figure>
 	
-	<aside class="col-md-6">
-	    <h2 style="display:inline">Video</h2> &nbsp; &nbsp;
-	    <h4 style="display:inline; color:gray">last 25 images</h4>
-	    <video class="img-fluid" controls preload loop >	     
-	      <source src="./mnt/output.webm" type='video/webm; codecs="vp8, vorbis"'>
-	      <!-- <source src="./mnt/output.mp4"> -->
-	    </video>
-	    <script>
-  var v = document.getElementsByTagName("video");
-  v.onclick = function() {
-    if (v.paused) {
-      v.play();
-    } else {
-      v.pause();
-    }
-  };
-</script>
-
-	</aside>
-	
       </div>
 
-	
-        <div class="col-md-6">
+      <div class="row">
+
+      
+        <div class="col-md-4">
           <h2>Test software</h2>
           <p>This software is developed with <code>node.js</code> and
 	      uses a <code>websocket</code> to push the image directly
@@ -106,9 +207,27 @@
 	    </ul>
         </div>
 
-      
-      <div class="container">
-	<pre class="col-md-6">
+	
+	<aside class="col-md-4">
+	  <h2 style="display:inline">Video</h2> &nbsp; &nbsp;
+	  <h4 style="display:inline; color:gray">last 25 images</h4>
+	  <video class="img-fluid" controls preload loop >	     
+	    <source src="./mnt/output.webm" type='video/webm; codecs="vp8, vorbis"'>
+	      <!-- <source src="./mnt/output.mp4"> -->
+	  </video>
+	  <script>
+	    var v = document.getElementsByTagName("video");
+	        v.onclick = function() {
+		    if (v.paused) {
+			v.play();
+		    } else {
+			v.pause();
+		    }
+		};
+	  </script>
+	</aside>
+	
+	<pre class="col-md-64">
 <code>
 </code>
 	</pre>
@@ -120,6 +239,8 @@
       <footer>
         <p>ORSA Team</p>
       </footer>
+
+
     </div> <!-- /container -->
 
 
@@ -133,6 +254,4 @@
     <!-- <\!-- IE10 viewport hack for Surface/desktop Windows 8 bug -\-> -->
     <!-- <script src="../../assets/js/ie10-viewport-bug-workaround.js"></script> -->
 
-    
-    <script src="../../js/jquery-latest.min.js"></script>
   <script src="./client.js"></script>

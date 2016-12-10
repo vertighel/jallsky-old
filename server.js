@@ -5,6 +5,8 @@ wsserver = require('websocket').server;         /// websocket module (npm instal
 
 var mysql = require('mysql')                     /// mysql module
 
+var jall = require('./jallsky.8.js')                     /// my module
+
 var dbconnection = mysql.createConnection({
     host     : 'localhost',
     user     : 'root',
@@ -44,10 +46,10 @@ ws.on('request', function(r){                   /// Listen connections
     	console.log("Executed: "+query.sql);
     	console.log(result[0]);
 
-	connection.send(JSON.stringify(result[0])); /// send the string to the server
-
-	// for(var i in clients)
-	//     clients[i].send(JSON.stringify(result[0])); /// send the string to the server
+	result[0].whoami="database"
+    	console.log(result[0]);
+	
+	connection.send(JSON.stringify(result[0])); /// send the string to the client
 	
     });
 
@@ -63,7 +65,10 @@ ws.on('request', function(r){                   /// Listen connections
 
 	msgjson.id=client_id
 
-
+	if(msgjson.whoami=='client'){
+	    jall.launch_exposure(msgjson)
+	}
+	
     	console.log("Message received from client n°: "+client_id+". The message is");
     	console.log(msgjson);
 	
