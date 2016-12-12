@@ -15,7 +15,7 @@
     
     var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     //var ws = new WebSocket('ws://192.168.0.6:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-    // var ws = new WebSocket('ws://87.15.121.195:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+     var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     
     /// yargs for arguments
     
@@ -25,15 +25,6 @@
     
     //////////////////////////////////////////////////
     /// Constant commands
-    
-    /// Heater Commands
-    const HEATER_ON  = 'g\x01';
-    const HEATER_OFF = 'g\x00';
-
-    /// Imaging Commands
-    const TAKE_IMAGE  = 'T';
-    const ABORT_IMAGE = 'A';
-    const XFER_IMAGE  = 'X';
     
     const CSUM_ERROR = 'R';
     const STOP_XFER  = 'S';
@@ -84,7 +75,7 @@
     sp.on('error', showError);
     sp.on('data',  sendSerialData);
     
-    sp.open(function(err){    
+    sp.open(function(err){
 	showPortOpen(err)
     }); /// sp.open
     
@@ -102,11 +93,17 @@
     function showPortOpen(err) {
 	if(err!== null) return console.log('showPortOpen error: ', err);
 	console.log('showPortOpen: port open. Data rate: ' + sp.options.baudRate)
+
+	heater_on(err)
+
     }
         
     function showPortClose(err) {
 	if(err!== null) return console.log('showPortClose error: ', err);
 	console.log('showPortClose: Port closed.');
+
+	heater_off(err)
+	
     }
 
     function showPortDisconnect(err) {
@@ -279,19 +276,46 @@ function get_serial_number(cb){
 
 /// Switches on the heater
 function heater_on(cb){
-    send_command(HEATER_ON, function(err,data){
-	if(err!==null) return  console.log("Error switching on the heater: " + err);
-	console.log("Heater on!");
-	cb()
-    }, undefined);
+    send_command('g\x00', function(err){
+    	if(err!==null){
+	    console.log("Error switching on the heater: " + err);
+	    cb(err)
+	}	
+    	console.log("Heater on!");	
+     }, undefined);
+
 }
 
 /// Switches off the heater
 function heater_off(cb){
-    send_command(HEATER_OFF, function(err,data){
-	if(err!==null) return  console.log("Error switching off the heater: " + err);
+    send_command('g\x00', function(err){
+    	if(err!==null){
+	    console.log("Error switching off the heater: " + err);
+	    cb(err)
+	}	
 	console.log("Heater off!");
-	cb()
+    }, undefined);
+}
+
+/// Switches off the heater
+function chop_on(cb){
+    send_command('U\x01', function(err){
+	if(err!==null){
+	    console.log("Error switching on chopping mode: " + err);
+	    cb(err)
+	}
+	console.log("Chop on!");
+    }, undefined);
+}
+
+/// Switches off the heater
+function chop_on(cb){
+    send_command('U\x00', function(err,data){
+	if(err!==null){
+	    console.log("Error switching on chopping mode: " + err);
+	    cb(err)
+	}
+	console.log("Chop off!");
     }, undefined);
 }
 
@@ -355,6 +379,17 @@ function  autonomous_guide(cb){
     
 }
 
+
+/// Aborting image
+function abort(cb){
+    send_command('A', function(err){
+	if(err!==null){
+	    console.log("Error Aborting image: " + err);
+	    cb(err)
+	}
+	console.log("Aborted!");
+    }, undefined);
+}
 
 
 /// This command defines the location and size of the sub-frame. The
@@ -432,56 +467,6 @@ function get_image(params, progress_callback, get_cb){
     const MAX_EXPOSURE = 0x63FFFF;
     var exptime = params.exptime / 100e-6;
 
-    // var imagetyp;  /// 2=L-D, 1=L, 0=D
-    // var frametyp;  /// 2=binned, 1=cropped,0=full, 0xff=subframe
-
-    // var width,height,blocks
-
-    // switch(params.imagetyp) {
-    // case 'light-dark':        
-    // 	imagetyp=2
-    // 	frametyp=2
-    // 	width=320
-    // 	height=240
-    // 	blocks=1024
-    //     break;
-    // case 'light':
-    // 	imagetyp=1
-    //     break;
-    // case 'dark':
-    // 	imagetyp=0
-    //     break;
-    // default:
-    // 	imagetyp=1	
-    // }
-    
-
-    // switch(params.frametyp) {
-    // case 'full':     
-    // 	frametyp=0
-    // 	width=640
-    // 	height=480
-    // 	blocks=4096
-    //     break;
-    // case 'cropped':
-    // 	frametyp=1
-    // 	width=512
-    // 	height=480
-    // 	blocks=4096
-    //     break;
-    // case 'custom':
-    // 	frametyp=0xff
-    // 	width=params.size
-    // 	height=params.size
-    // 	blocks=params.size
-    //     break;
-    // default:
-    // 	frametyp=0
-    // 	width=640
-    // 	height=480
-    // 	blocks=4096
-    // }
-
     var blocks_expected = (params.width * params.height) / params.blocks;
     var block_nbytes=2*params.blocks;
     
@@ -501,7 +486,7 @@ function get_image(params, progress_callback, get_cb){
 
     var combuf=new Buffer(7);
     
-    combuf.writeUInt8(TAKE_IMAGE.charCodeAt(0),0);
+    combuf.writeUInt8('T'.charCodeAt(0),0);
     combuf.writeUInt8(up,1);
     combuf.writeUInt8(mid,2);
     combuf.writeUInt8(low,3);
@@ -599,7 +584,7 @@ function get_image(params, progress_callback, get_cb){
 		    sp.write('K');  /// Checksum OK
 	    }, 1);
 	    
-	    send_command(XFER_IMAGE, function(err, res){
+	    send_command('X', function(err, res){ /// transfer image
 		if(err!==null) return cb(err);		
 	    }, null);
 	    
@@ -641,19 +626,33 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 //		    [0.8, 0.8, 0.8, 1.0, 0.9],
 		    [1.0, 1.0, 1.0, 1.0, 1.0]
 		];
+
 		
-//		var cuts=[100,45000];
-//		var cuts=[2000,6000];   //10s
-		var cuts=[3800,10000];  //25s
+		image.histogram({}, function(error, histo){ 
+		    if(error)
+			console.log("Histo error : " + error);
+		    else{
+//			console.log("HISTO : " + JSON.stringify(histo));
+			params.histo=histo
+		    }
+		});
+				
+		//		var cuts=[100,45000];
+		//		var cuts=[2000,6000];   //10s
+		//		var cuts=[3800,10000];  //25s
 
-
-		console.log("***************************************************")
-		console.log(params.width)
-		console.log(image.width)
-		console.log("***************************************************")
+		var cuts=[11000,40000];  //25s
+		
+		
+		
+		// console.log("***************************************************")
+		// console.log(params.width)
+		// console.log(image.width)
+		// console.log("***************************************************")
 		
 		image.set_colormap(colormap);
 		image.set_cuts(cuts);
+
 		var out = fs.createWriteStream(params.pngname);
 		out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [image.width(),image.height()], type : "png" }));
 		out.end();
@@ -809,10 +808,12 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 			    ws.send(JSON.stringify(params),function(err,res){
 				if(err !=null) console.log("Websocket error sending message: "+err)
 				console.log("sending post to server.js")
-				console.log(params)			    
+				// console.log(params)			    
 			    })		    
-			    //			ws.close();		    
-			},3000) //1 second = 1000ms....	
+			    //			ws.close();			    
+			    
+			cb(params)
+			},3000) //1 second = 1000ms....
 			
 		    })		
 		    
@@ -827,7 +828,6 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 
         }); /// define_subframe
 
-	cb()
     } /// launch_exposure
     
     module.exports = {
@@ -837,9 +837,10 @@ var f = new fits.file(params.fitsname); //The file is automatically opened (for 
 	get_firmware_version : get_firmware_version ,
 	
 	launch_exposure      : launch_exposure      , //open, get, close
+	abort                : abort                ,
 	
 	define_subframe      : define_subframe      ,
-	open_shutter         : open_shutter         ,	  
+	open_shutter         : open_shutter         ,//de_energize
 	get_image            : get_image            ,	  
 	close_shutter        : close_shutter        ,
 	heater_on            : heater_on            ,

@@ -46,8 +46,8 @@
 
       <!-- Example row of columns -->
       <div class="row">
-	
-        <article class="col-md-8">
+
+        <article class="col-md-4">
           <h2>Input parameters</h2>
 
 	  <form>
@@ -61,8 +61,8 @@
 	      <!-- </div> -->
 
 	      <div class="form-group row">
-		<label for="imagetyp" class="col-sm-2 col-form-label" >Type</label>
-		<div class="col-sm-6">
+		<label for="imagetyp" class="col-md-4 col-form-label" >Type</label>
+		<div class="col-md-8">
 		  <select class="form-control" id="imagetyp" name="imagetyp">
 		    <option value="light">Light</option>
 		    <option value="dark">Dark</option>
@@ -72,22 +72,22 @@
 	      </div>
 
 	      <div class="form-group row">
-		<label for="exptime" class="col-sm-2 col-form-label">Exptime</label>
-		<div class="col-sm-6">
-		  <input class="form-control" type="number" value="0.04" min="0" max="600" step="any" id="exptime" name="exptime">
+		<label for="exptime" class="col-md-4 col-form-label">Exptime</label>
+		<div class="col-md-8">
+		  <input class="form-control" type="number" value="10" min="0" max="600" step="any" id="exptime" name="exptime">
 		</div>
 	      </div>
 
 	      <div class="form-group row">
-	      	<label for="nexp" class="col-sm-2 col-form-label">N. exp</label>
-	      	<div class="col-sm-6">
+	      	<label for="nexp" class="col-md-4 col-form-label">N. exp</label>
+	      	<div class="col-md-8">
 	      	  <input class="form-control" type="number" value="1" min="1" max="300" id="nexp" name="nexp">
 	      	</div>
 	      </div>
 	      
 	      <div class="form-group row">
-		<label for="frametyp" class="col-sm-2 col-form-label" >Frame</label>
-		<div class="col-sm-6">
+		<label for="frametyp" class="col-md-4 col-form-label" >Frame</label>
+		<div class="col-md-8">
 		  <select class="form-control" id="frametyp" name="frametyp">
 		    <option value="full">Full</option>
 		    <option value="cropped">Cropped</option>
@@ -98,21 +98,22 @@
 	      </div>
 
 	      <div class="form-group row">
-		<label for="size" class="col-sm-2 col-form-label">Size</label>
-		<div class="col-sm-6">
+		<label for="size" class="col-md-4 col-form-label">Size</label>
+		<div class="col-md-8">
 		  <input disabled class="form-control" type="number" value="120" min="1" max="127" step="1" id="size" name="size">
 		</div>
 	      </div>
 
 	      <div class="form-group row">			
-		<span class="col-sm-2 col-form-label">Start X,Y</span>
+		<span class="col-md-4 col-form-label">Start X,Y</span>
 		<label for="x_start" class="sr-only">x</label>
-		<div class="col-sm-3">
+		<div class="col-md-4">
 		  <input disabled class="form-control" type="number" value="200"  min="0" max="639" step="1" id="x_start" name="x_start">
 		</div>
 		  <!-- </div> -->
 		  <!-- <div class="form-group row"> -->
-		  	<label for="y_start" class="sr-only">Y</label>		  <div class="col-sm-3">
+		  <label for="y_start" class="sr-only">Y</label>
+		  <div class="col-md-4">
 		    <input disabled class="form-control" type="number" value="200"  min="0" max="479" step="1" id="y_start" name="y_start">
 		  </div>
 	      </div>
@@ -153,10 +154,17 @@ $("#size").change(function(){
     if (yval > ymax) $("#y_start").prop("value",ymax)    
 })
 	    </script>
-
-    <button type="submit" class="btn btn-primary">Expose</button> <span id="iteration">0</span>/<span id="total_exp">1</span> complete
-
-</form>
+	    <div class="form-group row">			
+	      <span class="col-md-4 col-form-label"><span id="iteration">0</span>/<span id="total_exp">1</span> Remaining</span>
+	      <div class="col-md-4">
+		<button type="submit" class="btn btn-primary">Expose</button>
+	      </div>
+		  <!-- <button type="button" class="btn btn-secondary" id="heater">Heater</button> -->
+		  <div class="col-md-4">
+		    <button type="button" class="btn btn-secondary" id="abort">Abort</button>
+		  </div>
+	    </div>
+	  </form>
 
           <!-- <p><a class="btn btn-secondary" href="#" role="button" onclick="ciccio()">Get Firmware</a></p> -->
 	  
@@ -182,10 +190,6 @@ $("#size").change(function(){
 	    <span></span>
 	  </figcaption>
 	</figure>
-	
-      </div>
-
-      <div class="row">
 
       
         <div class="col-md-4">
@@ -205,6 +209,12 @@ $("#size").change(function(){
 	      <li><a href="./mnt/png/">list of png images</a></li>	
 	    </ul>
         </div>
+
+
+	
+      </div>
+
+      <div class="row">
 
 	
 	<aside class="col-md-4">
