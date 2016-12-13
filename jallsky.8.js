@@ -15,7 +15,7 @@
     
     var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     //var ws = new WebSocket('ws://192.168.0.6:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-     var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+    // var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     
     /// yargs for arguments
     
@@ -276,7 +276,7 @@ function get_serial_number(cb){
 
 /// Switches on the heater
 function heater_on(cb){
-    send_command('g\x00', function(err){
+    send_command('g\x01', function(err){
     	if(err!==null){
 	    console.log("Error switching on the heater: " + err);
 	    cb(err)
@@ -309,10 +309,10 @@ function chop_on(cb){
 }
 
 /// Switches off the heater
-function chop_on(cb){
+function chop_off(cb){
     send_command('U\x00', function(err,data){
 	if(err!==null){
-	    console.log("Error switching on chopping mode: " + err);
+	    console.log("Error switching off chopping mode: " + err);
 	    cb(err)
 	}
 	console.log("Chop off!");

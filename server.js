@@ -7,7 +7,7 @@ var promise = require('promise');
 var mysql = require('mysql');                     /// mysql module
 var Step = require('step'); //synchronous test
 
-var jall = require('./jallsky.8.js');                     /// my module
+var jall = require('./jallsky.9.js');                     /// my module
 
 var dbconnection = mysql.createConnection({
     host     : 'localhost',
