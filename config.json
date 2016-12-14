@@ -28,13 +28,6 @@
     "header" : {
 	"template" : "./header_template.json",
 	"comment"  : "Address of the header template"
-    },
-
-    "mysql" : {
-    	"host"     : "localhost",
-    	"user"     : "root",
-    	"password" : "password",
-    	"database" : "test"
     }
 
 }

@@ -51,7 +51,6 @@ $("#abort").on("click",function(event){
 /* opening a websocket connection to interact with other users.  Where is server.js? */
 var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 //var ws = new WebSocket('ws://192.168.0.5:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-//var ws = new WebSocket('ws://192.168.1.23:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 //var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 
 
