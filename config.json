@@ -1,0 +1,40 @@
+
+{
+    
+    "fits" : {
+	"dir"     : "./mnt/fits/",
+	"comment" : "Where fits files are stored"
+    },
+
+    "png" : {
+	"dir"     : "./mnt/png/",
+	"comment" : "Where png images are stored"
+    },
+    
+    "ws" : {
+	"ip"      : "localhost",
+	"port"    : 1234,	
+	"comment" : "Parameters of the websocket server"
+    },
+    
+    "mongo" : {
+    	"database" : "test",
+        "ip"       : "localhost",
+        "port"     : 27017,
+        "collection": "allskycam",
+	"comment"  : "Parameters for mongodb connection"
+    },
+    
+    "header" : {
+	"template" : "./header_template.json",
+	"comment"  : "Address of the header template"
+    },
+
+    "mysql" : {
+    	"host"     : "localhost",
+    	"user"     : "root",
+    	"password" : "password",
+    	"database" : "test"
+    }
+
+}

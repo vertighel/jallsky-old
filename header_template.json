@@ -1,0 +1,78 @@
+[
+    { "key"     : "ORIGIN",
+      "value"   : "UNIGE",
+      "comment" : "Università di Genova"},
+
+    { "key"     : "OBSERVAT",
+      "value"   : "OARPAF",
+      "comment" : "Osservatorio Astronomico Regionale Parco Antola comune di Fascia"},
+
+    { "key"     : "TELESCOP",
+      "value"   : "ANT-Allsky",
+      "comment" : "AllSky Camera"},
+
+    { "key"     : "INSTRUME",
+      "value"   : "SBIG-Allsky340",
+      "comment" : "AllSky Camera"},
+
+    { "key"     : "OBJECT",
+      "value"   : "Night sky",
+      "comment" : "Name of observed object"},
+
+    { "key"     : "AUTHOR",
+      "value"   : "Davide Ricci",
+      "comment" : "Compiled the information in the data associated with the header"},
+
+    { "key"     : "LATITUDE",
+      "value"   : 44.591307,
+      "comment" : "44 35 28.7052 N"},
+
+    { "key"     : "LONGITUD",
+      "value"   : 9.203467,
+      "comment" : "09 12 12.4806 W"},
+
+    { "key"     : "ALTITUDE",
+      "value"   : 1460,
+      "comment" : "Meters"},
+
+    { "key"     : "TIMEZONE",
+      "value"   : 1,
+      "comment" : "Time Zone"},
+    
+    { "key"     : "EPOCH",
+      "value"   : 2000.0,
+      "comment" : "Equinox of celestial coordinate system"},
+
+    { "key"     : "OBSERVER",
+      "value"   : "",
+      "comment" : "Author of the observation"},
+
+    { "key"     : "IMAGETYP",
+      "value"   : "",
+      "comment" : "Image Type: Light, Dark, Light-Dark (only binning 2x2)"},
+
+    { "key"     : "BINNING",
+      "value"   : "",
+      "comment" : "Binning factor"},
+
+    { "key"     : "FRAMETYP",
+      "value"   : "",
+      "comment" : "Full [640,480], Cropped [512,480], binned [320,240], custom"},
+
+    { "key"     : "SUBFRAME",
+      "value"   : "",
+      "comment" : "[x_start, y_start, size]. Size squared, max 127px"},
+
+    { "key"     : "DATE-OBS",
+      "value"   : "",
+      "comment" : "Observation date from laptop, synchronized with NTP"},
+    
+    { "key"     : "JD",
+      "value"   : "",
+      "comment" : "Julian Date from laptop, synchronized with NTP"},
+
+    { "key"     : "EXPTIME",
+      "value"   : "",
+      "comment" : "Exposure time in seconds"}
+
+]
