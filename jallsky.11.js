@@ -450,7 +450,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 			[1.0, 1.0, 1.0, 1.0, 1.0]
 		    ];
 
-		    
+//		    nbins:50
 		    image.histogram({}, (error, histo) => { 
 			if(error)
 			    console.log("Histo error : " + error);

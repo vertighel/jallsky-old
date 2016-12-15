@@ -16,43 +16,99 @@
     <!-- <link href="jumbotron.css" rel="stylesheet"> -->
     
     <script src="../../js/jquery-latest.min.js"></script>
+    <script src="./node_modules/d3/build/d3.min.js"></script>
 
-  <body>
+    <style>
+    
+    /* #histogram ul{ */
+    /* height:300px; */
+    /* border:0.1em solid red       */
+    /* } */
 
-    <nav class="navbar navbar-static-top navbar-dark bg-inverse">
-      <a class="navbar-brand" href="#">ORSA AllSky Camera 340</a>
+    var#minist{
+    border-top:0.1em solid black
+    }
+    var#maxist{
+    border-bottom:0.1em solid black
+    }
 
-    </nav>
+    figure{
+//    height:200px;
+    padding:0;
+      margin:0;
+    }
+    
+    #histogram ul{
+      padding:0;
+      margin:0;
+    }
 
-    <!-- <\!-- Main jumbotron for a primary marketing message or call to action -\-> -->
-    <!-- <div class="jumbotron"> -->
-    <!--   <div class="container"> -->
-    <!--     <h1 class="display-3">Hello, world!</h1> -->
-    <!--     <p>This is a template for a simple marketing or informational website. It includes a large callout called a jumbotron and three supporting pieces of content. Use it as a starting point to create something more unique.</p> -->
-    <!--     <p><a class="btn btn-primary btn-lg" href="#" role="button">Learn more &raquo;</a></p> -->
-    <!--   </div> -->
-    <!-- </div> -->
+    #histogram li{
+    margin-top:200px;
+    background-color:#0275d8; /*steelblue*/
+    display:inline-block;
+    width:5px;
+    padding:0;
+    margin:0;
+    }
 
+    </style>
+    
+    <body>
+      
+      <nav class="navbar navbar-static-top navbar-dark bg-inverse">
+	<a class="navbar-brand" href="#">ORSA AllSky Camera 340</a>	
+      </nav>
+      
     <div class="container">
 
-      <!-- <ul class="nav nav-tabs" role="tablist"> -->
-      <!--   <li class="nav-item active"> -->
-      <!--     <a class="nav-link" href="#">Images <span class="sr-only">(current)</span></a> -->
-      <!--   </li> -->
-      <!--   <li class="nav-item"> -->
-      <!--     <a class="nav-link" href="#">Video</a> -->
-      <!--   </li> -->
-      <!-- </ul> -->
-
-      <!-- Example row of columns -->
       <div class="row">
 
-        <article class="col-md-4">
+
+	<section class="col-md-4" id="image">
+	  <h2 style="display:inline">dummy</h2> &nbsp;
+	  <figure class="figure">
+	    <img class="figure-img img-fluid">
+	  </figure>
+	  <figcaption class="figure-caption text-center">
+	    <span></span>
+	  </figcaption>
+	
+	  <div class="text-md-center">Exposure
+	    <output for="exposure_progress" id="exposure_output">0</output>%
+	  </div>
+	  <progress id="exposure_progress" aria-describedby="exposure_output" class="progress" value="0" max="100" ></progress>
+
+	  <div class="text-md-center">Transfer
+	    <output for="transfer_progress" id="transfer_output">0</output>%
+	  </div>
+	  <progress id="transfer_progress"  aria-describedby="transfer_output" class="progress" value="0" max="100"></progress>
+	  
+	</section>
+
+
+	
+        <section class="col-md-4" id="histogram">
+          <h2>histogram</h2>
+	  <var id="maxist"></var>
+	  <figure class="text-center">
+	  </figure>
+	  <var id="minist"></var>
+	  <figcaption class="figure-caption">
+	    Histogram start: <var id="mincuts"></var>, step: <var id="maxcuts"></var>.
+	  </figcaption>
+	    <label for="log">log scale</label>
+	    <input type="checkbox" class="form-checkbox" id="log" >
+	</section>
+
+	
+	
+        <section class="col-md-4">
           <h2>Input parameters</h2>
 
 	  <form>
 	    <div class="form-group">
-
+	      
 	      <!-- <div class="form-group row"> -->
 	      <!-- 	<label for="observer" class="col-sm-2 col-form-label">Observer</label> -->
 	      <!-- 	<div class="col-sm-6"> -->
@@ -118,6 +174,7 @@
 		  </div>
 	      </div>
 	    </div>
+
 	    <script>
 
 $("#imagetyp").change(function(){
@@ -154,6 +211,7 @@ $("#size").change(function(){
     if (yval > ymax) $("#y_start").prop("value",ymax)    
 })
 	    </script>
+
 	    <div class="form-group row">			
 	      <span class="col-md-4 col-form-label"><span id="iteration">0</span>/<span id="total_exp">1</span> Remaining</span>
 	      <div class="col-md-4">
@@ -168,30 +226,14 @@ $("#size").change(function(){
 
           <!-- <p><a class="btn btn-secondary" href="#" role="button" onclick="ciccio()">Get Firmware</a></p> -->
 	  
-
-	</article>
-
-	<figure class="col-md-4">
-	    <h2 style="display:inline">dummy</h2> &nbsp; &nbsp;
-	    <h4 style="display:inline; color:gray"></h4>
-	  <img class="img-fluid">
-	  <figcaption>
-
-	    <div class="text-md-center">Exposure
-	      <output for="exposure_progress" id="exposure_output">0</output>%
-	    </div>
-	    <progress id="exposure_progress" aria-describedby="exposure_output" class="progress" value="0" max="100" ></progress>
-
-	    <div class="text-md-center">Transfer
-	      <output for="transfer_progress" id="transfer_output">0</output>%
-	    </div>
-	    <progress id="transfer_progress"  aria-describedby="transfer_output" class="progress" value="0" max="100"></progress>
-
-	    <span></span>
-	  </figcaption>
-	</figure>
-
+	</section>
+	
+      </div> <!-- row -->
       
+      <div class="row">
+
+
+	
         <div class="col-md-4">
           <h2>Test software</h2>
           <p>This software is developed with <code>node.js</code> and
@@ -211,10 +253,6 @@ $("#size").change(function(){
         </div>
 
 
-	
-      </div>
-
-      <div class="row">
 
 	
 	<aside class="col-md-4">
@@ -246,7 +284,7 @@ $("#size").change(function(){
       <hr>
 
       <footer>
-        <p>ORSA Team</p>
+        <p>Davide Ricci <3 ORSA Team</p>
       </footer>
 
 
