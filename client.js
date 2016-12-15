@@ -1,5 +1,20 @@
 
 
+var config = (function() {
+        var config = null;
+        $.ajax({
+            'async': false,
+            'global': false,
+            'url': "./config.json",
+            'dataType': "json",
+            'success': function (data) {
+                config = data;
+            }
+        });
+        return config;
+    })();
+
+
 $("form").on("submit",function(event){
     event.preventDefault();                  /// avoids the page to reload
     
@@ -36,19 +51,8 @@ $("#abort").on("click",function(event){
 });
 
 /* opening a websocket connection to interact with other users.  Where is server.js? */
-var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-//var ws = new WebSocket('ws://192.168.0.5:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-//var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-
-// var w = {min:"5px",max:"200px"}
-// var widthrange = [w.min,w.max]
-// var wlin = d3.scaleLinear()
-//     .range(widthrange)
-// var wlog = d3.scaleLog()
-//     .range(widthrange)
-
-// var list = d3.select("#histogram figure").append("ul").style("height",w.max)
-
+//var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+var ws = new WebSocket('ws://'+config.ws.ip+':'+config.ws.port, 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
 
 var w = {min:"5",max:"300"}
 var h = {min:"5",max:"100"}
@@ -63,26 +67,14 @@ var hlog = d3.scaleLog()
 var clin = d3.scaleLinear()
     .range(colorrange)
 
-// //Create SVG element
-// var svg = d3.select("#histogram figure")
-//     .append("svg")
-//     .attr("id","chart")
-// //    .attr("viewBox", "0 0 "+w.max+" "+h.max)
-//     .attr("viewBox", "0 0 960 500")
-//     .attr("preserveAspectRatio", "xMidYMid")
-//     .attr("width", w.max)
-//     .attr("height", h.max);
-
 
 var svg = d3.select("#histogram figure")
   .append("svg")
 //     .attr("preserveAspectRatio", "xMidYMid meet")
-//  .attr("preserveAspectRatio", "none")
-  .attr("viewBox", "0 0 300 100")
+    .attr("viewBox", "0 0 300 100")
     .attr("class", "img-fluid")
     .attr("width", "100%")
 //     .attr("height", h.max)
-//  .classed("svg-content", true);
 
 
 var tot=[] /// creating a new array to contain my data and other user's data
@@ -146,6 +138,8 @@ function update_barchart(){
     console.log("called")
     
     var dataset=obj.histo.data
+    dataset = dataset.map(x => x+1) /// adding one to avoid issue with log scale
+
     
     var dom=d3.extent(dataset)
     
@@ -173,9 +167,9 @@ function update_barchart(){
 
     elem
     	.attr("x", (d,i) => i * (w.max / dataset.length) )
-	.attr("y", d =>  h.max-hscale(d) )
+	.attr("y", d =>  h.max-hscale(d)+1 ) 
 	.attr("width", w.max / dataset.length )
-	.attr("height", d => hscale(d) )
+	.attr("height", d => hscale(d)+1 )
 	.attr("fill", (d,i) => cscale(i) )
 
     

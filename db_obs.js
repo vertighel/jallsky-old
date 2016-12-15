@@ -38,11 +38,12 @@ var db = new mongo.Db(config.mongo.database, new mongo.Server(config.mongo.ip, c
 	    });				
 	});	
     }
-
-
+    
+    
     exports.enter = function(doc,cb){
 	db.open(function(err, db) {
 	    db.collection(config.mongo.collection, function(err, collection) {
+		doc._id=null /// Reset to avoid error for duplicate entry. Infame maledetto!
 	    	collection.insert(doc, function() {
 	    	    console.log("inserting")
 	    	    cb(doc)
@@ -50,8 +51,7 @@ var db = new mongo.Db(config.mongo.database, new mongo.Server(config.mongo.ip, c
 		    });				
 	    	});
 	    });
-	});	    
-
+	});	 	
     }
 
 

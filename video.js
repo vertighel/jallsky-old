@@ -2,7 +2,7 @@
 
 "use strict"
 
-var db_obs= require('fluent-ffmpeg');    /// For Video conversion
+var ffmpeg= require('fluent-ffmpeg');    /// For Video conversion
 
 var config= require('./config.json')   /// Configuration file
 var db_obs= require('./db_obs.js');    /// DB functions
@@ -12,20 +12,45 @@ var db_obs= require('./db_obs.js');    /// DB functions
 
 (function(params){
 
-    ffmpeg().addInput('/mnt/png/2016-12-15T0*.png /mnt/png/2016-12-15T1*.png').inputOptions("-pattern_type glob").noAudio().output("output.mp4").fps(4).run()
+//    ffmpeg().addInput('/mnt/png/2016-12-15T0*.png /mnt/png/2016-12-15T1*.png').inputOptions("-pattern_type glob").noAudio().output("output.mp4").fps(4).run()
     
     exports.webm = function(params,cb){
 	
-	db_obs.last_n(5,function(result,cb){
-		var a = result.map((r) => (r.pngname));
+	db_obs.last_n(15,function(result,cb){
 
-	    
-	    })	    
+	    var pngarr = result.map((r) => (r.pngname));
+
+	    var f=0
+	    f=ffmpeg()
+	    pngarr.forEach(p => f.input(p))
+	    console.log(pngarr)
+	    f.fps(5).mergeToFile("./output.avi","./").output("./output.mp4").run()	    
+
+	})	    
 
     }
 
     
 }).call()
+
+var pngarr=[
+    "./mnt/png/2016-12-15T03:01:04.png",
+    "./mnt/png/2016-12-15T03:01:24.png",
+    "./mnt/png/2016-12-15T03:01:44.png",
+    "./mnt/png/2016-12-15T03:02:04.png",
+    "./mnt/png/2016-12-15T03:02:24.png",
+    "./mnt/png/2016-12-15T03:02:44.png",
+    "./mnt/png/2016-12-15T03:03:03.png",
+    "./mnt/png/2016-12-15T03:03:23.png",
+    "./mnt/png/2016-12-15T03:03:43.png",
+    "./mnt/png/2016-12-15T03:04:03.png",
+    "./mnt/png/2016-12-15T03:04:23.png",
+    "./mnt/png/2016-12-15T03:04:43.png",
+    "./mnt/png/2016-12-15T03:05:03.png",
+    "./mnt/png/2016-12-15T03:05:23.png",
+    "./mnt/png/2016-12-15T03:05:42.png"
+]
+
 
 
 
