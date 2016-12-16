@@ -13,9 +13,9 @@
     
     var WebSocket = require('ws')
     
-    var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+//    var ws = new WebSocket('ws://localhost:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     //var ws = new WebSocket('ws://192.168.0.6:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
-    // var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
+    var ws = new WebSocket('ws://79.51.122.224:1234', 'echo-protocol'); /// SET SAME PORT ON SERVER SIDE!
     
     var fits_dir="./mnt/fits/"
     var png_dir="./mnt/png/"
@@ -30,13 +30,14 @@
     });
     
     var sp = new serialport('/dev/ttyUSB0',
-			    {baudRate: 115200}, // 115200, 230400, 460800,
+			    {baudRate: 115200,
+			     autoOpen:false,}, // 115200, 230400, 460800,
 			    function(err){			    
 				if(err!== null)
 				    return console.log('serialport instance error: ', err.message);
 			    });
     
-    sp.on('open',  showPortOpen);
+//    sp.on('open',  showPortOpen);
     sp.on('close', showPortClose);
     sp.on('disconnect', showPortDisconnect);
     sp.on('error', showError);
@@ -97,8 +98,8 @@
 	    var csb = ~by & 0x7F;
 	    cs = cs ^ csb;
 	}
-	com.writeUInt8(cs,cl-1);
-	console.log("ckecksum ok!!!!")
+	return com.writeUInt8(cs,cl-1);
+	console.log("Checksum buf: ["+com.writeUInt8(cs,cl-1)+"]");
     }
 
     function checksum(com){
@@ -108,23 +109,25 @@
             cs = cs ^ csb	
 	}
 	return String.fromCharCode(cs)
+	console.log("Checksum: ["+String.fromCharCode(cs)+"]");
     }
 
     /// Send Command
-    function send_command (command, cb, nb) {
+    function send_command(command, cb, nb) {
 	var cs = checksum(command)
 
 	var cmd=command+cs;
-	console.log("Sending command ["+command+"]; checksum ["+cs.charCodeAt(0)+"]; length="+cmd.length+" number of bytes="+nb);
+//	console.log("Sending command ["+command+"]; checksum ["+cs.charCodeAt(0)+"]; length="+cmd.length+" number of bytes="+nb);
+	console.log("Sending command ["+command+"]");
 
 	function on_data(buf){
 	    var received_cs=buf.readUInt8(0);
 	    var received_data=buf.slice(1); /// cut the first element
 	    
 	    if(received_cs!==cs.charCodeAt(0)){  /// checksum matching
-		console.log("Checksum not matching ! sent = " + cs.charCodeAt(0) + " received=" + received_cs );
+		console.log("Checksum ERR ! sent = " + cs.charCodeAt(0) + " received=" + received_cs );
 	    }else{
-		console.log("Checksum match OK!");
+		console.log("Checksum OK  ! sent = " + cs.charCodeAt(0) + " received=" + received_cs );
 	    }
 	    
 	    cb(null, received_data);
@@ -286,11 +289,11 @@
     function define_subframe(params,cb){
 	
 	var x=Buffer.alloc(4);
-	x.writeInt32LE(params[0]);    
-	var y=x
-	y.writeInt32LE(params[1]);
-	var s=x
-	s.writeInt32LE(params[2]);
+	x.writeInt32LE(params.x_start);    
+	var y=Buffer.alloc(4);
+	y.writeInt32LE(params.y_start);
+	var s=Buffer.alloc(4);
+	s.writeInt32LE(params.size);
 	
 	var combuf =Buffer.alloc(7)    
 	combuf[0]='S'.charCodeAt(0)
@@ -303,33 +306,48 @@
 	checksum_buf(combuf);
 	
 	var com=combuf;
-	var cmd_checksum=combuf.readUInt8(6);
-	
+	var cmd_checksum=combuf.readUInt8(6);	
 	
 	sp.write(combuf, function (err) {
 	    if (err) {
 		console.log("Error while sending ["+command+"] : " + err);
 		cb(err);
 	    }
-	    console.log("Subframe defined. Parameters: "+params);
+	    console.log("Subframe defined. Parameters: ");
+	    console.log(JSON.stringify(params));
 	});
 	
 	cb(null)
     }
     
-    /// Fetch an image from the camera
-    /// exposure -- exposure time in seconds
     /// progress_callback -- Function to be called after each block downloaded
-    function get_image(params, progress_callback, get_cb){
+    function get_image(params, progress_callback, cb){	
 	
+	var image_type={
+	    dark: {imcode:0},
+	    light:{imcode:1},
+	    auto: {imcode:2},
+	}
+
+	if(params.size == undefined) params.size=127 // max size if not specified
+	
+	var frame_type={// width, height, blocks, frcode
+	    full:   {width:640,  height:480,  blocks:4096, frcode:0    },
+	    crop:   {width:512,  height:480,  blocks:4096, frcode:1    },
+	    binned: {width:320,  height:240,  blocks:1024, frcode:2    }, /// only auto
+	    custom: {width:params.size, height:params.size, blocks:params.size, frcode:255  },
+	}
+
+	if(params.imagetyp == 'auto') params.frametyp='binned'
+	
+	Object.assign(params, image_type[params.imagetyp], frame_type[params.frametyp])
+		
 	/// Camera expsosure time works in 100µs units
-	/// MAX_EXPOSURE = 0x63FFFF;
 	var exptime = params.exptime / 100e-6;
+	if(exptime > 0x63FFFF) exptime = 0x63FFFF /// 653.3599s;
 
 	var blocks_expected = (params.width * params.height) / params.blocks;
-	var block_nbytes=2*params.blocks;
-	
-	if(exptime > 653.3599) exptime = 653.3599;
+	var block_nbytes=2*params.blocks;	
 
 	var exp=Buffer.alloc(4);
 	exp.writeInt32LE(exptime);
@@ -366,9 +384,9 @@
 		first_data_received = false;
 
 		if(cmd_checksum !== firstchar){
-		    console.log("Checksum error !!");
+		    console.log("Image_data_func Checksum error !!");
 		}else
-		    console.log("Checksum match !");
+		    console.log("Image_data_func Checksum match !");
 	    }
 	    else{
 		console.log("GetImage received progress data ["+in_data.toString('ascii')+"]");
@@ -388,7 +406,7 @@
 		
 	    }
 	    
-	    if(in_data == 'D'){
+	    if(in_data == 'D'){ /// Exposure complete
 		
 		var blocks_complete = 0;
 		var total_nbytes=blocks_expected*block_nbytes;
@@ -428,7 +446,7 @@
 		    if(received_bytes===total_nbytes){
 			sp.write('K'); /// Checksum OK
 			console.log("Received all data !")
-			get_cb(null, image_data);
+			cb(null, image_data);
 		    }
 		    else
 			sp.write('K');  /// Checksum OK
@@ -444,8 +462,8 @@
 	data_listener_func=image_data_func;
 
 	sp.write(com,function(err){
-	    if(err!==null) return get_cb(err);
-	    console.log("Command TAKEIMAGE sent ok!");
+	    if(err!==null) return cb(err);
+	    console.log("Comamnd TAKEIMAGE sent ok!");
 	});
 	
     }
@@ -487,18 +505,7 @@
 			}
 		    });
 		    
-		    //		var cuts=[100,45000];
-		    //		var cuts=[2000,6000];   //10s
-		    //		var cuts=[3800,10000];  //25s
-
 		    var cuts=[11000,40000];  //25s
-		    
-		    
-		    
-		    // console.log("***************************************************")
-		    // console.log(params.width)
-		    // console.log(image.width)
-		    // console.log("***************************************************")
 		    
 		    image.set_colormap(colormap);
 		    image.set_cuts(cuts);
@@ -522,77 +529,8 @@
 
 
     function launch_exposure(params,cb){
-
-	/*
-	  {
-	  "observer": "",
-	  "imagetyp": "light",
-	  "exptime": "0.001",
-	  "nexp": "1",
-	  "frametyp": "full",
-	  "whoami": "client"
-	  }
-	*/
-
-
-	var imcode;  /// 2=L-D, 1=L, 0=D
-	var frcode;  /// 2=binned, 1=cropped,0=full, 0xff=subframe
-
-	var width,height,blocks
-
-	switch(params.imagetyp) {
-	case 'light-dark':        
-    	    imcode=2
-    	    frcode=2
-	    width=320
-	    height=240
-	    blocks=1024
-            break;
-	case 'light':
-    	    imcode=1
-            break;
-	case 'dark':
-    	    imcode=0
-            break;
-	default:
-    	    imcode=1	
-	}
 	
-	if(params.imagetyp != 'light-dark'){
-	    switch(params.frametyp) {
-	    case 'full':     
-    		frcode=0
-		width=640
-		height=480
-		blocks=4096
-		break;
-	    case 'cropped':
-    		frcode=1
-		width=512
-		height=480
-		blocks=4096
-		break;
-	    case 'custom':
-    		frcode=0xff
-		width=params.size
-		height=params.size
-		blocks=params.size
-		break;
-	    default:
-    		frcode=0
-		width=640
-		height=480
-		blocks=4096
-	    }
-	}
-	
-	params.width=width;
-	params.height=height;
-	params.blocks=blocks;
-	params.imcode=imcode;
-	params.frcode=frcode;
-	
-	define_subframe([params.start_x,params.start_y,params.size],function(err){
+	define_subframe(params,function(err){
 	    if(err!==null) return console.log("define_subframe error: "+err);
 	    
 	    open_shutter(function (err, res){
@@ -612,7 +550,7 @@
 		    var fifi     = new fits.file(fitsname); 
 		    var M        = new fits.mat_ushort;
 		    
-		    M.set_data(width,height, image_data);
+		    M.set_data(params.width,params.height, image_data);
 		    fifi.file_name;		
 		    fifi.write_image_hdu(M);
 		    
