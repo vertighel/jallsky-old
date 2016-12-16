@@ -1,21 +1,21 @@
 ## Synopsis
 
 **jallsky** is a node.js system control for the SBIG AllSky 340M Camera.
-Its development stage is ridicously early.
+Its development stage is **ridicously early**.
 
 It is inspired by following python drivers:
 
  - https://github.com/badders/pyallsky
  - https://github.com/saltastro/skycam
 
-It provides following features:
+It (will) provides following features:
 
- - a node driver to communicate with the camera;
- - a web page to control the camera;
- - a link to the node-fits module to create FITS files and png images, and to add custom FITS header keys;
- - a set of mongodb functions to save informations about observations;
- - a websocket server to broadcast camera and db informations;
- - a node video script to create an animation of last images.
+ - a node driver to communicate with the camera (OK); 
+ - a web page to control the camera (OK);
+ - a link to the node-fits module to create FITS files and png images, and to add custom FITS header keys (OK);
+ - a set of mongodb functions to save informations about observations (OK);
+ - a websocket server to broadcast camera and db informations (OK);
+ - a node video script to create an animation of last images (TODO).
  
 ## Code Example
 
