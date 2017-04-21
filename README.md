@@ -1,26 +1,26 @@
 
 ## Synopsis
 
-**jallsky** is a node.js system control for the SBIG AllSky 340M Camera.
-Its development stage is **in a pre-alpha phase**.
+**jallsky** is a `node.js` system control for the **SBIG AllSky 340M Camera**.
+Its development stage is **in a pre-alpha phase**, and will be used at the OARPAF (*Regional Astronomical Observatory of the Antola Reserve, Fascia*).
 
-It takes inspiration from the following python drivers:
+It takes inspiration from the following `python` drivers:
 
  - https://github.com/badders/pyallsky
  - https://github.com/saltastro/skycam
 
 It provides following features:
 
- - A node driver to communicate with the camera: 
-   it is a node translation of the pyallsky code.
- - A web page to control the camera:
-   it is a simple interface based on bootstrap 4.
+ - A `node.js` driver to communicate with the camera: 
+   it is a `node.js` translation of the `pyallsky` code.
+ - A **web page** to control the camera:
+   it is a simple interface based on `bootstrap` 4.
  - A link to the [node-fits](https://github.com/Nunkiii/node-fits) github module:
    this module allows using data from the AllSky Camera to treate FITS files and png images, and to add custom FITS header keys. It also creates a simple histogram of the values of the image.
- - A set of mongodb functions to save informations about observations:
+ - A set of `mongodb` functions to save informations about observations:
    these observations are mainly key headers containing image informations, timing, and filesystem paths of the locations where fits and png images are stored.
- - A websocket server to broadcast camera and db informations;
- - a node video script to create an animation of last images (IN PROGRESS).
+ - A **websocket** server to broadcast camera and db informations;
+ - a `node.js` video script to create an animation of last images (IN PROGRESS).
 
 ## Motivation
 
@@ -31,64 +31,72 @@ The final goal is to integrate [webGL features](https://github.com/Nunkiii/XD-1)
 
 Due to the early development stage, the installation process is quite articulated.
 
-### Installing the latest node version
+### Installing the latest `node.js` version
 
-The latest node version (7.9) supports async/await functions which are very helpful in our case.
+The latest `node.js` version (7.9) supports async/await functions which are very helpful in our case.
 
+```bash
     cd /usr/local/	
     wget https://nodejs.org/dist/v7.9.0/node-v7.9.0-linux-x64.tar.xz
     tar --strip-components 1 -xf node-v7.9.0-linux-x64.tar.xz
     ln -s /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js node-gyp
     rm CHANGELOG.md LICENSE README.md node-v7.9.0-linux-x64.tar.xz
+```
 
 ### Cloning the repository
 
 Enter into your favourite git directory, or mkdir it:
 
+```bash
     cd ~ # or your git directory
     git clone https://github.com/vertighel/jallsky.git
 	cd jallsky/
 	npm -f install
+```
 
 <!-- Creating directories to store fits files and png images -->
 
 <!--     mkdir ./mnt ./mnt/fits ./mnt/png -->
 
-Installing the node-fits module, necessary in order to convert the images of the camera to FITS and png files:
+Installing the `node-fits` module, necessary in order to convert the images of the camera to FITS and png files:
 
+```bash
     cd node-modules/
     git clone https://github.com/Nunkiii/node-fits.git
 	sudo apt-get install g++ libpng-dev libjpeg9-dev libcfitsio3-dev 
 	cd node-fits
 	node-gyp configure
 	node-gyp build
+```
 
 ### Installing the additional components
 
-Installing bootstrap, which provide a mobile-first html, css and js framework:
+Installing `bootstrap`, which provide a mobile-first html, css and js framework:
 
-	cd ~ # or your git directory
+```bash
+    cd ~ # or your git directory
     git clone https://github.com/twbs/bootstrap.git
+```
 
-Installing mongodb, necessary to store the information and metadata relative to the saved images, and creating the collection which will contain these information:
+Installing `mongodb`, necessary to store the information and metadata relative to the saved images, and creating the collection which will contain these information:
 
-	sudo apt-get install mongodb
+```bash
+    sudo apt-get install mongodb
 	mongo
 	db.createCollection(allskycam)
 	exit
-
+```
 
 ## Configuration
 
-./config.json and ./header_template.json contain information about image storing, connection to the database, and FITS  header keys.
+`./config.json` and `./header_template.json` contain information about image storing, connection to the database, and FITS  header keys.
 
 ## Launch
 
 	./server.2.js
 
-If you have an installed web server, for example apache, open your browser on localhost at page.2.html, and launch observations.
+If you have an installed web server, for example **apache**, open your browser on `localhost` at `page.2.html`, and launch observations.
 The idea is to make this page a configuration page, password-protected. The page external.html will be the front end for everyone.
-
 
 
 <!-- ## API Reference -->
