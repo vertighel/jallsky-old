@@ -11,24 +11,29 @@ It takes inspiration from the following python drivers:
 
 It provides following features:
 
- - a node driver to communicate with the camera; 
- - a web page to control the camera;
- - a link to the node-fits module to create FITS files and png images, and to add custom FITS header keys;
- - a set of mongodb functions to save informations about observations;
- - a websocket server to broadcast camera and db informations;
- - a node video script to create an animation of last images (TODO).
- 
-## Code Example
+ - A node driver to communicate with the camera: 
+   it is a node translation of the pyallsky code.
+ - A web page to control the camera:
+   it is a simple interface based on bootstrap 4.
+ - A link to the [node-fits](https://github.com/Nunkiii/node-fits) github module:
+   this module allows using data from the AllSky Camera to treate FITS files and png images, and to add custom FITS header keys. It also creates a simple histogram of the values of the image.
+ - A set of mongodb functions to save informations about observations:
+   these observations are mainly key headers containing image informations, timing, and filesystem paths of the locations where fits and png images are stored.
+ - A websocket server to broadcast camera and db informations;
+ - a node video script to create an animation of last images (IN PROGRESS).
 
 ## Motivation
 
-This project is born to provide the OARPAF telescope with the best AllSkyCamera system and to help its robotization process.
+This project is born to provide the [OARPAF observatory](http://www.orsa.unige.net) with the best AllSkyCamera system and to help its robotization process.
+The final goal is to integrate [webGL features](https://github.com/Nunkiii/XD-1) to dynamically change image cuts; to provide a web interface to dynamically browse the image db, and to  add overlays to the image containing the position of celestial objects and of the OARPAF 80cm telescope during pointing, improving ESO solutions such as the [La Silla AllSky Camera](http://www.ls.eso.org/lasilla/dimm/lasc/). 
 
 ## Installation
 
+Due to the early development stage, the installation process is quite articulated.
+
 ### Installing the latest node version
 
-The latest node version (7.9) supports async/await functions which are handy our case
+The latest node version (7.9) supports async/await functions which are very helpful in our case.
 
     cd /usr/local/	
     wget https://nodejs.org/dist/v7.9.0/node-v7.9.0-linux-x64.tar.xz
@@ -38,15 +43,18 @@ The latest node version (7.9) supports async/await functions which are handy our
 
 ### Cloning the repository
 
-Enter into your favourite git directory, or mkdir it.
+Enter into your favourite git directory, or mkdir it:
 
     cd ~ # or your git directory
     git clone https://github.com/vertighel/jallsky.git
 	cd jallsky/
+	npm -f install
 
-### Installing the components
+<!-- Creating directories to store fits files and png images -->
 
-To install the node-fits module, necessary in order to convert the images of the camera to FITS and png files:
+<!--     mkdir ./mnt ./mnt/fits ./mnt/png -->
+
+Installing the node-fits module, necessary in order to convert the images of the camera to FITS and png files:
 
     cd node-modules/
     git clone https://github.com/Nunkiii/node-fits.git
@@ -55,31 +63,31 @@ To install the node-fits module, necessary in order to convert the images of the
 	node-gyp configure
 	node-gyp build
 
-To install mongodb, necessary to store the information and metadata relative to the saved images
+### Installing the additional components
 
-    cd ../../
+Installing bootstrap, which provide a mobile-first html, css and js framework:
+
+	cd ~ # or your git directory
+    git clone https://github.com/twbs/bootstrap.git
+
+Installing mongodb, necessary to store the information and metadata relative to the saved images, and creating the collection which will contain these information:
+
 	sudo apt-get install mongodb
 	mongo
 	db.createCollection(allskycam)
 	exit
 
-Creating directories to store fits files and png images
 
-    mkdir ./mnt ./mnt/fits ./mnt/png
+## Configuration
 
-The position of these directories can be edited in the ./config.json file.
-
-To install bootstrap, which provide a mobile-first html, css and js framework:
-
-	cd ~ # or your git directory
-    git clone https://github.com/twbs/bootstrap.git
+./config.json and ./header_template.json contain information about image storing, connection to the database, and FITS  header keys.
 
 ## Launch
 
 	./server.2.js
 
-If you have an installed web server, for example apache, open your browser on localhost at page.2.html
-The page external.html
+If you have an installed web server, for example apache, open your browser on localhost at page.2.html, and launch observations.
+The idea is to make this page a configuration page, password-protected. The page external.html will be the front end for everyone.
 
 
 
