@@ -4,7 +4,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <!-- The above 3 meta tags *must* come first in the head; any other head content must come *after* these tags -->
-    <meta name="description" content="">
+    <meta name="description" content="Web interface for jallsky, a node module for AllSkyCameras">
     <meta name="author" content="Davide Ricci">
     <link rel="icon" href="../../favicon.ico">
     <!-- <base target="_blank"> -->
@@ -15,7 +15,7 @@
     <!-- Custom styles for this template -->
     <!-- <link href="jumbotron.css" rel="stylesheet"> -->
     
-    <script src="../../js/jquery-latest.min.js"></script>
+    <script src="./node_modules/jquery/dist/jquery.min.js"></script>
     <script src="./node_modules/d3/build/d3.min.js"></script>
 
     <style>
@@ -57,45 +57,52 @@
     <body>
       
       <nav class="navbar navbar-static-top navbar-dark bg-inverse">
-	<a class="navbar-brand" href="#">ORSA AllSky Camera 340</a>	
+	<a class="navbar-brand" href="#">ORSA AllSky Camera 340</a>
       </nav>
       
-    <div class="container">
-
-      <div class="row">
-
-
-	<section class="col-md-4" id="image">
-	  <h2 style="display:inline">dummy</h2> &nbsp;
-	  <figure class="figure">
-	    <img class="figure-img img-fluid">
-	  </figure>
-	  <figcaption class="figure-caption text-center">
-	    <span></span>
-	  </figcaption>
+      <div class="container">
 	
-	  <div class="text-md-center">Exposure
-	    <output for="exposure_progress" id="exposure_output">0</output>%
-	  </div>
-	  <progress id="exposure_progress" aria-describedby="exposure_output" class="progress" value="0" max="100" ></progress>
-
-	  <div class="text-md-center">Transfer
-	    <output for="transfer_progress" id="transfer_output">0</output>%
-	  </div>
-	  <progress id="transfer_progress"  aria-describedby="transfer_output" class="progress" value="0" max="100"></progress>
+	<div class="row">
 	  
-	</section>
-
-
-	
-        <section class="col-md-4" id="histogram">
+	  
+	  <section class="col-md-4" id="image">
+	    <h2 style="display:inline">dummy</h2> &nbsp;
+	    <figure class="figure">
+	      <img class="figure-img img-fluid">
+	    </figure>
+	    <figcaption class="figure-caption text-center">
+	      <span></span>
+	    </figcaption>
+	    
+	    <div class="text-md-center">Exposure
+	      <output for="exposure_progress"
+	      id="exposure_output">0</output>%
+	    </div>
+	    <progress id="exposure_progress"
+	    aria-describedby="exposure_output" class="progress"
+	    value="0" max="100" ></progress>
+	    
+	    <div class="text-md-center">Transfer
+	      <output for="transfer_progress"
+	      id="transfer_output">0</output>%
+	    </div>
+	    <progress id="transfer_progress"
+	    aria-describedby="transfer_output" class="progress"
+	    value="0" max="100"></progress>
+	    
+	  </section>
+	  
+	  
+	  
+          <section class="col-md-4" id="histogram">
           <h2>histogram</h2>
 	  <var id="maxist"></var>
 	  <figure class="text-center">
 	  </figure>
 	  <var id="minist"></var>
 	  <figcaption class="figure-caption">
-	    Histogram start: <var id="mincuts"></var>, step: <var id="maxcuts"></var>.
+	    Histogram start: <var id="mincuts"></var>,
+	    step: <var id="maxcuts"></var>.
 	  </figcaption>
 	    <label for="log">log scale</label>
 	    <input type="checkbox" class="form-checkbox" id="log" >
@@ -110,14 +117,16 @@
 	    <div class="form-group">
 	      
 	      <!-- <div class="form-group row"> -->
-	      <!-- 	<label for="observer" class="col-sm-2 col-form-label">Observer</label> -->
-	      <!-- 	<div class="col-sm-6"> -->
-	      <!-- 	  <input class="form-control" type="text" placeholder="Observer name" id="observer" name="observer"> -->
-	      <!-- 	</div> -->
-	      <!-- </div> -->
+	      <!-- <label for="observer" class="col-sm-2
+	      col-form-label">Observer</label> -->
+	      <!-- <div class="col-sm-6"> -->
+	      <!-- <input class="form-control" type="text"
+	      placeholder="Observer name" id="observer"
+	      name="observer"> --> <!-- </div> --> <!-- </div> -->
 
 	      <div class="form-group row">
-		<label for="imagetyp" class="col-md-4 col-form-label" >Type</label>
+		<label for="imagetyp" class="col-md-4 col-form-label"
+		>Type</label>
 		<div class="col-md-8">
 		  <select class="form-control" id="imagetyp" name="imagetyp">
 		    <option value="auto">Light-Dark</option>
@@ -128,21 +137,24 @@
 	      </div>
 
 	      <div class="form-group row">
-		<label for="exptime" class="col-md-4 col-form-label">Exptime</label>
+		<label for="exptime" class="col-md-4
+		col-form-label">Exptime</label>
 		<div class="col-md-8">
 		  <input class="form-control" type="number" value="0.01" min="0.01" max="600" step="0.01" id="exptime" name="exptime">
 		</div>
 	      </div>
 
 	      <div class="form-group row">
-	      	<label for="nexp" class="col-md-4 col-form-label">N. exp</label>
+	      	<label for="nexp" class="col-md-4
+	      	col-form-label">N. exp</label>
 	      	<div class="col-md-8">
 	      	  <input class="form-control" type="number" value="3" min="1" max="300" id="nexp" name="nexp">
 	      	</div>
 	      </div>
 	      
 	      <div class="form-group row">
-		<label for="frametyp" class="col-md-4 col-form-label" >Frame</label>
+		<label for="frametyp" class="col-md-4 col-form-label"
+		>Frame</label>
 		<div class="col-md-8">
 		  <select class="form-control" id="frametyp" name="frametyp">
 		    <option value="crop">Crop</option>
@@ -154,20 +166,21 @@
 	      </div>
 
 	      <div class="form-group row">
-		<label for="size" class="col-md-4 col-form-label">Size</label>
+		<label for="size" class="col-md-4
+		col-form-label">Size</label>
 		<div class="col-md-8">
 		  <input disabled class="form-control" type="number" value="120" min="1" max="127" step="1" id="size" name="size">
 		</div>
 	      </div>
 
-	      <div class="form-group row">			
+	      <div class="form-group row">
 		<span class="col-md-4 col-form-label">Start X,Y</span>
 		<label for="x_start" class="sr-only">x</label>
 		<div class="col-md-4">
 		  <input disabled class="form-control" type="number" value="260"  min="0" max="639" step="1" id="x_start" name="x_start">
 		</div>
-		  <!-- </div> -->
-		  <!-- <div class="form-group row"> -->
+		  <!-- </div> --> <!-- <div class="form-group row">
+		  -->
 		  <label for="y_start" class="sr-only">Y</label>
 		  <div class="col-md-4">
 		    <input disabled class="form-control" type="number" value="180"  min="0" max="479" step="1" id="y_start" name="y_start">
@@ -177,9 +190,8 @@
 
 	    <script>
 
-$("#imagetyp").change(function(){
-    // var ifdark = this.value == "dark"
-    // $("#exptime").prop("disabled",ifdark)	
+$("#imagetyp").change(function(){ // var ifdark = this.value == "dark"
+    // $("#exptime").prop("disabled",ifdark)
     
     var ifcust = $("#frametyp").prop("value")  == "custom"
     var ifld = this.value == "auto" 
@@ -210,21 +222,28 @@ $("#size").change(function(){
     if (xval > xmax) $("#x_start").prop("value",xmax)
     if (yval > ymax) $("#y_start").prop("value",ymax)    
 })
-	    </script>
 
-	    <div class="form-group row">			
-	      <span class="col-md-4 col-form-label"><span id="iteration">0</span>/<span id="total_exp">1</span> Remaining</span>
+	    </script>
+	    
+	    <div class="form-group row">
+	      <span class="col-md-4
+	      col-form-label"><span id="iteration">0</span>/<span id="total_exp">1</span>
+	      Remaining</span>
 	      <div class="col-md-4">
-		<button type="submit" class="btn btn-primary">Expose</button>
+		<button type="submit" class="btn
+		btn-primary">Expose</button>
 	      </div>
-		  <!-- <button type="button" class="btn btn-secondary" id="heater">Heater</button> -->
+		  <!-- <button type="button" class="btn btn-secondary"
+		  id="heater">Heater</button> -->
 		  <div class="col-md-4">
-		    <button type="button" class="btn btn-secondary" id="abort">Abort</button>
+		    <button type="button" class="btn btn-secondary"
+		    id="abort">Abort</button>
 		  </div>
 	    </div>
 	  </form>
 
-          <!-- <p><a class="btn btn-secondary" href="#" role="button" onclick="ciccio()">Get Firmware</a></p> -->
+          <!-- <p><a class="btn btn-secondary" href="#" role="button"
+          onclick="ciccio()">Get Firmware</a></p> -->
 	  
 	</section>
 	
@@ -247,22 +266,21 @@ $("#size").change(function(){
 	    </ul>
 
 	    <ul>
-	      <li><a href="./mnt/fits/">list of fits files</a></li>	
-	      <li><a href="./mnt/png/">list of png images</a></li>	
+	      <li><a href="./mnt/fits/">list of fits files</a></li>
+	      <li><a href="./mnt/png/">list of png images</a></li>
 	    </ul>
         </div>
-
-
 
 	
 	<aside class="col-md-4">
 	  <h2 style="display:inline">Video</h2> &nbsp; &nbsp;
 	  <h4 style="display:inline; color:gray">last 25 images</h4>
-	  <video class="img-fluid" controls preload loop >	     
+	  <video class="img-fluid" controls preload loop >
 	    <source src="./mnt/output.webm" type='video/webm; codecs="vp8, vorbis"'>
 	      <!-- <source src="./mnt/output.mp4"> -->
 	  </video>
 	  <script>
+
 	    var v = document.getElementsByTagName("video");
 	        v.onclick = function() {
 		    if (v.paused) {
@@ -271,6 +289,7 @@ $("#size").change(function(){
 			v.pause();
 		    }
 		};
+
 	  </script>
 	</aside>
 	
@@ -284,12 +303,11 @@ $("#size").change(function(){
       <hr>
 
       <footer>
-        <p>Davide Ricci <3 ORSA Team</p>
+        <p>Davide Ricci 4 ORSA A-Team</p>
       </footer>
 
 
     </div> <!-- /container -->
-
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

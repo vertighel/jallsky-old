@@ -1,6 +1,5 @@
 
-
-var config = (function() {
+var config = (function() { /// Retrieve configuration file.
         var config = null;
         $.ajax({
             'async': false,
@@ -98,8 +97,6 @@ ws.addEventListener("message", function(e) { /// creates an event listener for s
 
 	if(obj.histo) update_barchart()
 
-
-
 	// if(obj.histo) update_histogram()
 
 	$("#maxist").text(Math.max(...obj.histo.data))
@@ -128,9 +125,7 @@ ws.addEventListener("message", function(e) { /// creates an event listener for s
 
 //	$("pre code").text(JSON.stringify(obj, undefined, 2))
 
-
 	d3.selectAll("input").on("change",update_barchart)
-
 
 	update_barchart()
 	
@@ -207,10 +202,10 @@ function update_barchart(){
 
 	
     } /// if obj
-        
-
     
-    });
+    
+    
+});
 
 
 

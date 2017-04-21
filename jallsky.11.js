@@ -6,10 +6,9 @@ var serialport = require('serialport');
 var julian = require("julian");     /// for Julian Date conversion
 var fs=require("fs")                /// file stream for node-fits    
 
-var fits = require('../node-fits/build/Release/fits'); /// managing fits files
+var fits = require('./node_modules/node-fits/build/Release/fits'); /// managing fits files
 var config= require('./config.json')   /// Configuration file
 var message = require('./message.js'); /// Websocket meessage functions
-
 
 (function(){
     
@@ -320,6 +319,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 	Object.assign(params, image_type[params.imagetyp], frame_type[params.frametyp])
 		
 	/// Camera expsosure time works in 100µs units
+	params.exptime= parseFloat(params.exptime)
 	var exptime = params.exptime / 100e-6;
 	if(exptime > 0x63FFFF) exptime = 0x63FFFF /// 653.3599s;
 
@@ -520,6 +520,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 	cb(params)
 	
     }
+
     
     async function launch_exposure(params,cb){
 	

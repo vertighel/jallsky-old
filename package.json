@@ -1,0 +1,29 @@
+{
+  "name": "jallsky",
+  "version": "0.0.1",
+  "description": "A node code for AllSky Cameras",
+  "main": "./server.2.js",
+  "dependencies": {
+    "d3": "^4.8.0",
+    "jquery": "^3.2.1",
+    "julian": "^0.1.0",
+    "mongodb": "^2.2.26",
+    "serialport": "^4.0.7",
+    "websocket": "^1.0.24",
+    "ws": "^2.3.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "./server.2.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vertighel/jallsky.git"
+  },
+  "author": "Davide Ricci, Pierre Sprimont",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vertighel/jallsky/issues"
+  },
+  "homepage": "https://github.com/vertighel/jallsky#readme"
+}

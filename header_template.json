@@ -1,11 +1,11 @@
 [
     { "key"     : "ORIGIN",
       "value"   : "UNIGE",
-      "comment" : "Università di Genova"},
+      "comment" : "Universita' di Genova"},
 
     { "key"     : "OBSERVAT",
       "value"   : "OARPAF",
-      "comment" : "Osservatorio Astronomico Regionale Parco Antola comune di Fascia"},
+      "comment" : "Oss. Astronomico Regionale Parco Antola, Fascia"},
 
     { "key"     : "TELESCOP",
       "value"   : "ANT-Allsky",
@@ -17,11 +17,11 @@
 
     { "key"     : "OBJECT",
       "value"   : "Night sky",
-      "comment" : "Name of observed object"},
+      "comment" : "Name of the observed object"},
 
     { "key"     : "AUTHOR",
       "value"   : "Davide Ricci",
-      "comment" : "Compiled the information in the data associated with the header"},
+      "comment" : "Compiled header info"},
 
     { "key"     : "LATITUDE",
       "value"   : 44.591307,
@@ -57,15 +57,15 @@
 
     { "key"     : "FRAMETYP",
       "value"   : "",
-      "comment" : "Full [640,480], Cropped [512,480], binned [320,240], custom"},
+      "comment" : "Full=[640,480] Cropped=[512,480] binned=[320,240]"},
 
     { "key"     : "SUBFRAME",
       "value"   : "",
-      "comment" : "[x_start, y_start, size]. Size squared, max 127px"},
+      "comment" : "custom=[x_start, y_start, size]. Size squared, max 127px"},
 
     { "key"     : "DATE-OBS",
       "value"   : "",
-      "comment" : "Observation date from laptop, synchronized with NTP"},
+      "comment" : "Obs. date from laptop, synchronized with NTP"},
     
     { "key"     : "JD",
       "value"   : "",

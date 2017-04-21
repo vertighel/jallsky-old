@@ -1,4 +1,4 @@
-#!/usr/local/bin/babel-node
+#!/usr/local/bin/node
 
 var wsserver = require('websocket').server;
 var http = require('http');    
@@ -46,20 +46,12 @@ ws.on('request', function(r){                   /// Listen connections
 	}
 	
 	if(msgjson.whoami=='client'){
+
+	   
+	    /// Non va la callback
+	    // async function times(n, f) { while (n-- > 0) await f(n); }
+	    // times(msgjson.nexp, (nn)=>schedule.launch(msgjson, function(){return nn}) )
 	    
-
-	    // 	    let times = (n,f)=>{while(n-->0) await f();}	    
-	    // 	    times(5,() => jall.launch_exposure(msgjson,err => err) )
-
-
-	    // async function times(n, f) {
-	    // 	while (n-- > 0)
-	    // 	    await f();
-	    // }
-	    
-	    //      async function times(5,()=>{
-	    // 	       await jall.launch_exposure(msgjson,err => err)
-	    //      })
 	    
 	     var ntrucs=msgjson.nexp;
 
@@ -67,8 +59,7 @@ ws.on('request', function(r){                   /// Listen connections
 	    
 	    function do_something(cb){
 	    	schedule.launch(msgjson,cb)
-	    } /// do something
-	    
+	    } /// do something	    
 	    
 	    function done_cb(){
 	    	ntrucs--;

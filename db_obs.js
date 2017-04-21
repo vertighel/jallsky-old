@@ -16,11 +16,9 @@ var db = new mongo.Db(config.mongo.database, new mongo.Server(config.mongo.ip, c
 	    db.collection(config.mongo.collection, function(err, collection) {
 		collection.find({}).limit(1).sort({dateobs:-1}).toArray(function(err,result){
 		    result[0].whoami="database"
-		    //		    connection.send(JSON.stringify(result[0])); /// send the string to the client
-		    
+		    //		    connection.send(JSON.stringify(result[0])); /// send the string to the client		    
 		    //		    console.log(JSON.stringify(result[0])); /// send the string to the client
 		    cb(result[0])
-
 		    db.close();
 		})
 	    });				

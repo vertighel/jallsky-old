@@ -4,10 +4,10 @@ var fits = require('../node-fits/build/Release/fits');
 var fs = require('fs');
 var fifi=new fits.file("");
 
-var file_name="/mnt/fits/2016-12-03T00:09:47.546.fits"; //or, more usefull: var file_name=process.argv[2]; 
+var file_name="/mnt/fits/2016-12-03T00:09:47.546.fits"; /// or, more useful: var file_name=process.argv[2]; 
 
-
-var f = new fits.file(file_name); //The file is automatically opened (for reading) if the file name is specified on constructor.
+/// The file is automatically opened (for reading) if the file name is specified on constructor.
+var f = new fits.file(file_name);
 
 f.get_headers(function(error, headers){
     
@@ -18,13 +18,12 @@ f.get_headers(function(error, headers){
     
     console.log("FITS Headers : " + JSON.stringify(headers,null,5));
 
-    
-    //Reading an image as an arraybuffer of floats (4bytes/pixel). The returned image is another JS imported C++ class representing 2D data organised by rows: jsmat class. 
-  //(this has to be extended to extract the data in other javascript supported binary types)
+    //Reading an image as an arraybuffer of floats (4bytes/pixel). The
+    //returned image is another JS imported C++ class representing 2D
+    //data organised by rows: jsmat class.  (this has to be extended
+    //to extract the data in other javascript supported binary types)
   
     f.read_image_hdu(function(error, image){
-
-
 	
 	if(error){
 	    console.log("Bad things happened while reading image hdu : " + error);
@@ -33,7 +32,7 @@ f.get_headers(function(error, headers){
 	
 	if(image){
 
-	    //for (var ip in image) console.log("IP : " + ip);
+	    /// for (var ip in image) console.log("IP : " + ip);
 	    
 	    console.log("Image size : " + image.width() + " X " + image.height()); 
 	    
@@ -54,8 +53,8 @@ f.get_headers(function(error, headers){
 	    out.write(image.tile( { tile_coord :  [0,0], zoom :  0, tile_size : [640,480], type : "png" }));
 	    out.end();
 	    
-	    //	image.histogram({ nbins: 350, cuts : [23,65] }, function(error, histo){ .... 
-	    //      By default cuts are set to min,max and nbins to 200
+	    ///	image.histogram({ nbins: 350, cuts : [23,65] }, function(error, histo){ .... 
+	    ///  By default cuts are set to min,max and nbins to 200
 	    
 	    image.histogram({}, function(error, histo){ 
 		if(error)
@@ -72,7 +71,7 @@ f.get_headers(function(error, headers){
 
             console.log("First pix is " + ab[0]);
       
-	    //... do what you want with the pixels ...
+	    /// ... do what you want with the pixels ...
 	}
 	
     });
