@@ -44,7 +44,7 @@
       "comment" : "Equinox of celestial coordinate system"},
 
     { "key"     : "OBSERVER",
-      "value"   : "",
+      "value"   : "A-Team",
       "comment" : "Author of the observation"},
 
     { "key"     : "IMAGETYP",
@@ -52,7 +52,7 @@
       "comment" : "Image Type: Light, Dark, Light-Dark (only binning 2x2)"},
 
     { "key"     : "BINNING",
-      "value"   : "",
+      "value"   : undefined,
       "comment" : "Binning factor"},
 
     { "key"     : "FRAMETYP",
@@ -68,11 +68,11 @@
       "comment" : "Obs. date from laptop, synchronized with NTP"},
     
     { "key"     : "JD",
-      "value"   : "",
+      "value"   : undefined,
       "comment" : "Julian Date from laptop, synchronized with NTP"},
 
     { "key"     : "EXPTIME",
-      "value"   : "",
+      "value"   : undefined,
       "comment" : "Exposure time in seconds"}
 
 ]

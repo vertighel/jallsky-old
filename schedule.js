@@ -1,4 +1,14 @@
-#!/usr/local/bin/babel-node
+#!/usr/local/bin/node
+
+/**
+ * @file   schedule.js
+ * @author Davide Ricci (davide.ricci82@gmail.com) and Pierre Sprimont
+ * @date   Sat Apr 22 02:44:34 2017
+ * 
+ * @brief  Schedules observations and launches the exposures.
+ * 
+ * 
+ */
 
 "use strict"
 
@@ -17,10 +27,9 @@ var db_obs= require('./db_obs.js');    /// DB functions
 	jall.launch_exposure(params,function(){
 	    
 	    db_obs.enter(params,function(){
-		cb("******************************done!");		
+		cb("*********** done! ***************");		
 	    })
 	    
-//	    console.log("Do un truc... ntrucs = " + ntrucs);
 	}) /// jall.launch_exposure
 
     }

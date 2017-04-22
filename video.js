@@ -1,5 +1,15 @@
 #!/usr/local/bin/node
 
+/**
+ * @file   video.js
+ * @author Davide Ricci (davide.ricci82@gmail.com)
+ * @date   Sat Apr 22 02:58:28 2017
+ * 
+ * @brief  Creating a video of last n png. Better than a gif...
+ * 
+ * 
+ */
+
 "use strict"
 
 var ffmpeg= require('fluent-ffmpeg');    /// For Video conversion

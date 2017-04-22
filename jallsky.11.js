@@ -1,14 +1,24 @@
 #!/usr/local/bin/babel-node
 
+/**
+ * @file   jallsky.11.js
+ * @author Pierre Sprimont and Davide Ricci (davide.ricci82@gmail.com)
+ * @date   Sat Apr 22 02:46:46 2017
+ * 
+ * @brief  AllSky 340M Camera driver
+ * 
+ * 
+ */
+
 "use strict";
 
-var serialport = require('serialport');
-var julian = require("julian");     /// for Julian Date conversion
-var fs=require("fs")                /// file stream for node-fits    
+var serialport = require('serialport'); /// Camera communication,
+var julian = require("julian");     /// Julian Date conversion.
+var fs=require("fs")                /// File stream for node-fits.
 
-var fits = require('./node_modules/node-fits/build/Release/fits'); /// managing fits files
-var config= require('./config.json')   /// Configuration file
-var message = require('./message.js'); /// Websocket meessage functions
+var fits = require('./node_modules/node-fits/build/Release/fits'); /// Manages fits files.
+var config= require('./config.json')   /// Configuration file.
+var message = require('./message.js'); /// Websocket meessage functions.
 
 (function(){
     
@@ -102,9 +112,9 @@ var message = require('./message.js'); /// Websocket meessage functions
 
 	function on_data(buf){
 	    var received_cs=buf.readUInt8(0);
-	    var received_data=buf.slice(1); /// cut the first element
+	    var received_data=buf.slice(1); /// Cuts the first element.
 	    
-	    if(received_cs!==cs.charCodeAt(0)){  /// checksum matching
+	    if(received_cs!==cs.charCodeAt(0)){  /// Checksum matching.
 		console.log("Checksum ERR ! sent = " + cs.charCodeAt(0) + " received=" + received_cs );
 	    }else{
 		console.log("Checksum OK  ! sent = " + cs.charCodeAt(0) + " received=" + received_cs );
@@ -208,7 +218,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 
     function open_shutter(cb){
 	send_command('O', (err,data) => {
-	    if(err!==null) return  cb(err) // console.log("Error opening shutter: " + err);
+	    if(err!==null) return  cb(err)
 	    setTimeout(() => {
 		send_command('K', cb, undefined);  /// DE_ENERGIZE
 		console.log("Shutter open !");
@@ -218,7 +228,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 
     function close_shutter(cb){
 	send_command('C', (err,data) => {
-	    if(err!==null) return cb(err) // console.log("Error closing shutter: " + err);
+	    if(err!==null) return cb(err)
 	    setTimeout(() => {
 		send_command('K', cb, undefined);  /// DE_ENERGIZE
 		console.log("Shutter closed !");
@@ -263,8 +273,16 @@ var message = require('./message.js'); /// Websocket meessage functions
 	} /// data listener_func
     } /// get_bytes
 
-    
-    /// Maximum size of the sub-frame: 127 pixels. 
+
+
+    /** 
+     *
+     * 
+     * @param params 
+     * @param cb 
+     * 
+     * @return 
+     */
     function define_subframe(params,cb){
 	
 	var x=Buffer.alloc(4);
@@ -295,8 +313,16 @@ var message = require('./message.js'); /// Websocket meessage functions
 	    console.log("Subframe defined. Parameters: "+[params.x_start,params.y_start,params.size]);
 	});	
     }
-    
-    /// progress_callback -- Function to be called after each block downloaded
+
+    /** 
+     *  
+     * 
+     * @param params 
+     * @param progress_callback Function to be called after each block is downloaded.
+     * @param cb 
+     * 
+     * @return 
+     */
     function get_image(params, progress_callback, cb){	
 	
 	var image_type={
@@ -304,13 +330,14 @@ var message = require('./message.js'); /// Websocket meessage functions
 	    light:{imcode:1},
 	    auto: {imcode:2},
 	}
-
-	if(params.size == undefined) params.size=127 // max size if not specified
+	
+	/// Maximum size of the sub-frame: 127 pixels.
+	if(params.size == undefined) params.size=127 // Max size if not specified.
 	
 	var frame_type={// width, height, blocks, frcode
 	    full:   {width:640,  height:480,  blocks:4096, frcode:0    },
 	    crop:   {width:512,  height:480,  blocks:4096, frcode:1    },
-	    binned: {width:320,  height:240,  blocks:1024, frcode:2    }, /// only auto
+	    binned: {width:320,  height:240,  blocks:1024, frcode:2    }, /// Only "auto".
 	    custom: {width:params.size, height:params.size, blocks:params.size, frcode:255  },
 	}
 
@@ -318,8 +345,8 @@ var message = require('./message.js'); /// Websocket meessage functions
 	
 	Object.assign(params, image_type[params.imagetyp], frame_type[params.frametyp])
 		
-	/// Camera expsosure time works in 100µs units
-	params.exptime= parseFloat(params.exptime)
+	/// Camera expsosure time works in 100µs units.
+	params.exptime= parseFloat(params.exptime) /// It will be useful several times
 	var exptime = params.exptime / 100e-6;
 	if(exptime > 0x63FFFF) exptime = 0x63FFFF /// 653.3599s;
 
@@ -362,18 +389,18 @@ var message = require('./message.js'); /// Websocket meessage functions
 	    else{
 		console.log("GetImage received progress data ["+in_data.toString('ascii')+"]");
 		
-		var mid_time = new Date().getTime(); //in ms
-		var time_diff = (mid_time-start_time)/1000; /// s
+		var mid_time = new Date().getTime(); /// In ms.
+		var time_diff = (mid_time-start_time)/1000; /// In s.
 				    
 		message.elapsed({whoami:'image_data_func', t1:time_diff, t2:params.exptime})
 		
 	    }
 	    
-	    if(in_data == 'D'){ /// Exposure complete
+	    if(in_data == 'D'){ /// Exposure complete!
 		
 		var blocks_complete = 0;
 		var total_nbytes=blocks_expected*block_nbytes;
-		//var data=new ArrayBuffer();
+
 		var received_bytes=0;
 		var received_cs_bytes=0;
 		var block_bytes=0;
@@ -396,19 +423,18 @@ var message = require('./message.js'); /// Websocket meessage functions
 		    
 		    received_bytes+=block_nbytes;
 
-		    // console.log("Received image data:"+received_bytes + "/" + total_nbytes + " CSUM=" + cs + "\t CSUM IN " + csum_in);
 		    message.elapsed({whoami:'get_bytes', t1:received_bytes, t2:total_nbytes})
 		    
 		    if(received_bytes===total_nbytes){
-			sp.write('K'); /// Checksum OK
+			sp.write('K'); /// Checksum OK!
 			console.log("Received all data !")
 			cb(null, image_data);
 		    }
 		    else
-			sp.write('K');  /// Checksum OK
+			sp.write('K');  /// Checksum OK!
 		}, 1);
 		
-		send_command('X', (err, res) => { /// transfer image
+		send_command('X', (err, res) => { /// Transfers image.
 		    if(err!==null) return cb(err);		
 		}, null);
 		
@@ -424,11 +450,19 @@ var message = require('./message.js'); /// Websocket meessage functions
 	
     }
 
+    /** 
+     * 
+     * 
+     * @param params 
+     * @param cb 
+     * 
+     * @return 
+     */
     function create_png(params,cb){
 	
 	var pngname  = config.png.dir+params.dateobs+".png"
 	
-	var f = new fits.file(params.fitsname); //The file is automatically opened (for reading) if the file name is specified on constructor.
+	var f = new fits.file(params.fitsname); /// The file is automatically open (for reading) if the file name is specified on constructor.
 
 	f.get_headers((error, headers) => {
 	    
@@ -443,7 +477,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 		    console.log("Image size : " + image.width() + " X " + image.height()); 
 		    
 		    var colormap=[
-			//R  //G  //B  //A  //level: 0=min,1=max
+			///R  ///G  ///B  ///A  ///level: 0=min,1=max
 			[0.0, 0.0, 0.0, 1.0, 0.0],
 			//		    [0.4, 0.4, 0.4, 1.0, 0.8],
 			//		    [0.8, 0.8, 0.8, 1.0, 0.9],
@@ -460,7 +494,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 			}
 		    });
 		    
-		    var cuts=[11000,40000];  //25s
+		    var cuts=[11000,40000];  /// For 25s
 		    
 		    image.set_colormap(colormap);
 		    image.set_cuts(cuts);
@@ -483,6 +517,15 @@ var message = require('./message.js'); /// Websocket meessage functions
 	console.log("create_png: ended")	
     }
 
+    /** 
+     * 
+     * 
+     * @param data 
+     * @param params 
+     * @param cb 
+     * 
+     * @return 
+     */
     function write_fits(data,params,cb){
 	
 	console.log("write_fits: routine called. Got image!")		
@@ -501,7 +544,8 @@ var message = require('./message.js'); /// Websocket meessage functions
 	fifi.write_image_hdu(M);	
 	
 	var h=require(config.header.template)
-	
+
+	/// Filling the header
 	h.find(x => x.key === 'DATE-OBS').value = dateobs
 	h.find(x => x.key === 'JD'      ).value = jd
 	h.find(x => x.key === 'EXPTIME' ).value = params.exptime
@@ -521,7 +565,15 @@ var message = require('./message.js'); /// Websocket meessage functions
 	
     }
 
-    
+
+    /** 
+     * 
+     * 
+     * @param params 
+     * @param cb 
+     * 
+     * @return 
+     */
     async function launch_exposure(params,cb){
 	
     	if(params.x_start && params.y_start && params.size)
@@ -533,10 +585,9 @@ var message = require('./message.js'); /// Websocket meessage functions
     	    if(err!== null) return console.log('a_get_image error: ', err);
 	    
     	 write_fits(image_data,params, function(err){
-//		if(err!==null) return console.log("write fits error: "+err);
 	
 		create_png(params, function(){
-	    	    console.log("**************************callback of create_png: called")
+	    	    console.log("********** callback of create_png: called ***********")
 		    
 	    	    setTimeout(function(){
 	    		params.whoami="create_png"
@@ -544,7 +595,7 @@ var message = require('./message.js'); /// Websocket meessage functions
 		    message.simple(params,function(){
 			cb()
 		    })
-	    	    },300) //1 second = 1000ms....
+	    	    },300) /// 1 second = 1000ms....
 		    
 		})
 

@@ -2,7 +2,7 @@
 ## Synopsis
 
 **jallsky** is a `node.js` system control for the **SBIG AllSky 340M Camera**.
-Its development stage is **in a pre-alpha phase**, and will be used at the OARPAF (*Regional Astronomical Observatory of the Antola Reserve, Fascia*).
+Its development stage is **in a pre-alpha phase**, and will be used at the **OARPAF** (*Regional Astronomical Observatory of the Antola Reserve, Fascia*).
 
 It takes inspiration from the following `python` drivers:
 
@@ -36,11 +36,11 @@ Due to the early development stage, the installation process is quite articulate
 The latest `node.js` version (7.9) supports async/await functions which are very helpful in our case.
 
 ```bash
-    cd /usr/local/	
-    wget https://nodejs.org/dist/v7.9.0/node-v7.9.0-linux-x64.tar.xz
-    tar --strip-components 1 -xf node-v7.9.0-linux-x64.tar.xz
-    ln -s /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js node-gyp
-    rm CHANGELOG.md LICENSE README.md node-v7.9.0-linux-x64.tar.xz
+cd /usr/local/	
+wget https://nodejs.org/dist/v7.9.0/node-v7.9.0-linux-x64.tar.xz
+tar --strip-components 1 -xf node-v7.9.0-linux-x64.tar.xz
+ln -s /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js node-gyp
+rm CHANGELOG.md LICENSE README.md node-v7.9.0-linux-x64.tar.xz
 ```
 
 ### Cloning the repository
@@ -48,10 +48,10 @@ The latest `node.js` version (7.9) supports async/await functions which are very
 Enter into your favourite git directory, or mkdir it:
 
 ```bash
-    cd ~ # or your git directory
-    git clone https://github.com/vertighel/jallsky.git
-	cd jallsky/
-	npm -f install
+cd ~ # or your git directory
+git clone https://github.com/vertighel/jallsky.git
+cd jallsky/
+npm -f install
 ```
 
 <!-- Creating directories to store fits files and png images -->
@@ -61,12 +61,12 @@ Enter into your favourite git directory, or mkdir it:
 Installing the `node-fits` module, necessary in order to convert the images of the camera to FITS and png files:
 
 ```bash
-    cd node-modules/
-    git clone https://github.com/Nunkiii/node-fits.git
-	sudo apt-get install g++ libpng-dev libjpeg9-dev libcfitsio3-dev 
-	cd node-fits
-	node-gyp configure
-	node-gyp build
+cd node-modules/
+git clone https://github.com/Nunkiii/node-fits.git
+sudo apt-get install g++ libpng-dev libjpeg9-dev libcfitsio3-dev 
+cd node-fits
+node-gyp configure
+node-gyp build
 ```
 
 ### Installing the additional components
@@ -74,17 +74,17 @@ Installing the `node-fits` module, necessary in order to convert the images of t
 Installing `bootstrap`, which provide a mobile-first html, css and js framework:
 
 ```bash
-    cd ~ # or your git directory
-    git clone https://github.com/twbs/bootstrap.git
+cd ~ # or your git directory
+git clone https://github.com/twbs/bootstrap.git
 ```
 
 Installing `mongodb`, necessary to store the information and metadata relative to the saved images, and creating the collection which will contain these information:
 
 ```bash
-    sudo apt-get install mongodb
-	mongo
-	db.createCollection(allskycam)
-	exit
+sudo apt-get install mongodb
+mongo
+db.createCollection(allskycam)
+exit
 ```
 
 ## Configuration
@@ -93,7 +93,9 @@ Installing `mongodb`, necessary to store the information and metadata relative t
 
 ## Launch
 
-	./server.2.js
+```bash
+./server.2.js
+```
 
 If you have an installed web server, for example **apache**, open your browser on `localhost` at `page.2.html`, and launch observations.
 The idea is to make this page a configuration page, password-protected. The page external.html will be the front end for everyone.
