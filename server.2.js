@@ -10,7 +10,7 @@
  * 
  */
 
-"use strict"
+// "use strict"
 
 var wsserver = require('websocket').server;
 var http = require('http');    
@@ -91,7 +91,6 @@ ws.on('request', function(r){   /// Listens connections.
 	     * 
 	     */
 
-	    /// Non va la callback
 	    // async function times(n, f) { while (n-- > 0) await f(n); }
 	    // times(msgjson.nexp, (nn)=>schedule.launch(msgjson, function(){return nn}) )
 	    

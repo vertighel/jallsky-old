@@ -98,7 +98,7 @@ exit
 ```
 
 If you have an installed web server, for example **apache**, open your browser on `localhost` at `page.2.html`, and launch observations.
-The idea is to make this page a configuration page, password-protected. The page external.html will be the front end for everyone.
+The idea is to make this page a configuration page, password-protected. The page `external.html` will be the front end for everyone.
 
 
 <!-- ## API Reference -->

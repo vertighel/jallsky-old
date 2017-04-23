@@ -21,9 +21,10 @@ var config= require('./config.json')   /// Configuration file.
 var message = require('./message.js'); /// Websocket meessage functions.
 
 (function(){
-    
-    var sp = new serialport('/dev/ttyUSB0',
-			    {baudRate: 115200,  // 115200, 230400, 460800,
+
+    /// Opens the serial connection with the camera 
+    var sp = new serialport(config.camera.device, /// /dev/ttyUSB0 
+			    {baudRate: config.camera.baudrate,  // 115200 (, 230400, 460800),
 			     autoOpen:false,},
 			    err => err!== null ? console.log('serialport instance error: ', err.message) : true
 			   );
@@ -328,7 +329,7 @@ var message = require('./message.js'); /// Websocket meessage functions.
 	var image_type={
 	    dark: {imcode:0},
 	    light:{imcode:1},
-	    auto: {imcode:2},
+	    auto: {imcode:2}, /// Light-Dark (only binned).
 	}
 	
 	/// Maximum size of the sub-frame: 127 pixels.
@@ -371,7 +372,8 @@ var message = require('./message.js'); /// Websocket meessage functions.
 	var cmd_checksum=combuf.readUInt8(6);
 	
 	console.log('Beginning Exposure')
-	var start_time = new Date().getTime(); /// in ms
+	var start_time 0; /// "E" = Exposure in progress. This is sent approximately every 150ms.
+	var E_in_progress: 150/1000 ///ms
 
 	var first_data_received=true;
 	
@@ -391,8 +393,8 @@ var message = require('./message.js'); /// Websocket meessage functions.
 		
 		var mid_time = new Date().getTime(); /// In ms.
 		var time_diff = (mid_time-start_time)/1000; /// In s.
-				    
-		message.elapsed({whoami:'image_data_func', t1:time_diff, t2:params.exptime})
+
+		message.elapsed({whoami:'image_data_func', t1:start_time+=e_in_progress, t2:params.exptime})
 		
 	    }
 	    
@@ -476,13 +478,14 @@ var message = require('./message.js'); /// Websocket meessage functions.
 		    
 		    console.log("Image size : " + image.width() + " X " + image.height()); 
 		    
-		    var colormap=[
-			///R  ///G  ///B  ///A  ///level: 0=min,1=max
-			[0.0, 0.0, 0.0, 1.0, 0.0],
-			//		    [0.4, 0.4, 0.4, 1.0, 0.8],
-			//		    [0.8, 0.8, 0.8, 1.0, 0.9],
-			[1.0, 1.0, 1.0, 1.0, 1.0]
-		    ];
+		    var colormap= config.png.colormap
+		    ///R  ///G  ///B  ///A  ///level: 0=min,1=max
+		    // [
+		    // [0.0, 0.0, 0.0, 1.0, 0.0],
+		    // [0.4, 0.4, 0.4, 1.0, 0.8],
+		    // [0.8, 0.8, 0.8, 1.0, 0.9],
+		    // [1.0, 1.0, 1.0, 1.0, 1.0]
+		    // ];
 
 //		    nbins:50
 		    image.histogram({}, (error, histo) => { 
@@ -494,7 +497,7 @@ var message = require('./message.js'); /// Websocket meessage functions.
 			}
 		    });
 		    
-		    var cuts=[11000,40000];  /// For 25s
+		    var cuts=config.png.cuts;  /// For 25s
 		    
 		    image.set_colormap(colormap);
 		    image.set_cuts(cuts);
@@ -543,19 +546,20 @@ var message = require('./message.js'); /// Websocket meessage functions.
 	fifi.file_name;		
 	fifi.write_image_hdu(M);	
 	
-	var h=require(config.header.template)
+	var h=require(config.header.template) /// Loading json containing the header template
 
-	/// Filling the header
+	/// Filling variable header keys.
 	h.find(x => x.key === 'DATE-OBS').value = dateobs
 	h.find(x => x.key === 'JD'      ).value = jd
 	h.find(x => x.key === 'EXPTIME' ).value = params.exptime
 	h.find(x => x.key === 'IMAGETYP').value = params.imagetyp
 	h.find(x => x.key === 'FRAMETYP').value = params.frametyp
-	h.find(x => x.key === 'BINNING' ).value = params.frametyp == 'binned' ? 2 : 1
+	h.find(x => x.key === 'BINNING' ).value = params.frametyp == 'binned' ? parseInt(2) : parseInt(1)
 	h.find(x => x.key === 'SUBFRAME').value = params.frametyp == 'custom'
 	    ? "["+[params.x_start, params.y_start, params.size].toString()+"]" : ''
-	
-	fifi.set_header_key(h, err => console.log("Error setting fits header:"+err))	
+
+	/// Filling fixed header keys.
+	fifi.set_header_key(h, err => console.log("Error setting fits header: "+err))
 	
 	var post  = {jd:jd, dateobs:dateobs, exptime:params.exptime, fitsname:fitsname };
 

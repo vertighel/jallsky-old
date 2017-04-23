@@ -49,30 +49,30 @@
 
     { "key"     : "IMAGETYP",
       "value"   : "",
-      "comment" : "Image Type: Light, Dark, Light-Dark (only binning 2x2)"},
+      "comment" : "Light; Dark; Light-Dark (only binning 2x2)"},
 
     { "key"     : "BINNING",
-      "value"   : undefined,
+      "value"   : null,
       "comment" : "Binning factor"},
 
     { "key"     : "FRAMETYP",
       "value"   : "",
-      "comment" : "Full=[640,480] Cropped=[512,480] binned=[320,240]"},
+      "comment" : "full=[640,480] crop=[512,480] binned=[320,240]"},
 
     { "key"     : "SUBFRAME",
       "value"   : "",
-      "comment" : "custom=[x_start, y_start, size]. Size squared, max 127px"},
+      "comment" : "custom=[x_start,y_start,size]. Size < 127px"},
 
     { "key"     : "DATE-OBS",
       "value"   : "",
       "comment" : "Obs. date from laptop, synchronized with NTP"},
     
     { "key"     : "JD",
-      "value"   : undefined,
+      "value"   : null,
       "comment" : "Julian Date from laptop, synchronized with NTP"},
 
     { "key"     : "EXPTIME",
-      "value"   : undefined,
+      "value"   : null,
       "comment" : "Exposure time in seconds"}
 
 ]
