@@ -39,7 +39,7 @@ The latest `node.js` version (7.9) supports async/await functions which are very
 cd /usr/local/	
 wget https://nodejs.org/dist/v7.9.0/node-v7.9.0-linux-x64.tar.xz
 tar --strip-components 1 -xf node-v7.9.0-linux-x64.tar.xz
-ln -s /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js node-gyp
+ln -s /usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js /usr/local/bin/node-gyp
 rm CHANGELOG.md LICENSE README.md node-v7.9.0-linux-x64.tar.xz
 ```
 

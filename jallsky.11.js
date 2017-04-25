@@ -372,8 +372,8 @@ var message = require('./message.js'); /// Websocket meessage functions.
 	var cmd_checksum=combuf.readUInt8(6);
 	
 	console.log('Beginning Exposure')
-	var start_time 0; /// "E" = Exposure in progress. This is sent approximately every 150ms.
-	var E_in_progress: 150/1000 ///ms
+	var start_time = 0; /// "E" = Exposure in progress. This is sent approximately every 150ms.
+	var E_in_progress = 150/1000 ///ms
 
 	var first_data_received=true;
 	
@@ -391,10 +391,7 @@ var message = require('./message.js'); /// Websocket meessage functions.
 	    else{
 		console.log("GetImage received progress data ["+in_data.toString('ascii')+"]");
 		
-		var mid_time = new Date().getTime(); /// In ms.
-		var time_diff = (mid_time-start_time)/1000; /// In s.
-
-		message.elapsed({whoami:'image_data_func', t1:start_time+=e_in_progress, t2:params.exptime})
+		message.elapsed({whoami:'image_data_func', t1:start_time+=E_in_progress, t2:params.exptime})
 		
 	    }
 	    
@@ -497,7 +494,7 @@ var message = require('./message.js'); /// Websocket meessage functions.
 			}
 		    });
 		    
-		    var cuts=config.png.cuts;  /// For 25s
+		    var cuts=config.png.cuts;  /// [11000,40000] for 25s exposure
 		    
 		    image.set_colormap(colormap);
 		    image.set_cuts(cuts);

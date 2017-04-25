@@ -9,19 +9,20 @@
     "julian": "^0.1.0",
     "mongodb": "^2.2.26",
     "serialport": "^4.0.7",
+    "suncalc": "^1.8.0",
     "websocket": "^1.0.24",
     "ws": "^2.3.1"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "./server.2.js"
+    "test": " No test file provided "
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/vertighel/jallsky.git"
   },
   "author": "Davide Ricci, Pierre Sprimont",
-  "license": "ISC",
+  "license": "CC",
   "bugs": {
     "url": "https://github.com/vertighel/jallsky/issues"
   },
