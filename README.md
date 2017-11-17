@@ -83,7 +83,7 @@ Installing `mongodb`, necessary to store the information and metadata relative t
 ```bash
 sudo apt-get install mongodb
 mongo
-db.createCollection(allskycam)
+db.createCollection("allskycam")
 exit
 ```
 

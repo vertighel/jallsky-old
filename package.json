@@ -4,12 +4,12 @@
   "description": "A node code for AllSky Cameras",
   "main": "./server.2.js",
   "dependencies": {
+    "bootstrap": "^4.0.0-alpha.6",
     "d3": "^4.8.0",
     "jquery": "^3.2.1",
     "julian": "^0.1.0",
     "mongodb": "^2.2.26",
     "serialport": "^4.0.7",
-    "suncalc": "^1.8.0",
     "websocket": "^1.0.24",
     "ws": "^2.3.1"
   },
