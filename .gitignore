@@ -1,5 +1,2 @@
-## ignoring patterns
-
-*~            # ignore temporary files
-node_modules  # ignore this directory
-.gitignore    # ignore this file
+node_modules/
+*~
